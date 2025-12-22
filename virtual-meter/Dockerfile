@@ -6,8 +6,12 @@ WORKDIR /app
 
 RUN apk add --no-cache python3 py3-pip
 
+ENV VIRTUAL_ENV=/opt/venv
+RUN python3 -m venv ${VIRTUAL_ENV}
+ENV PATH="${VIRTUAL_ENV}/bin:${PATH}"
+
 COPY requirements.txt ./
-RUN python3 -m pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
 COPY app ./app
 COPY defaults.json ./defaults.json
