@@ -71,7 +71,12 @@ def _overrides(settings: Settings) -> dict[str, float | None]:
 def create_app(settings: Settings) -> web.Application:
     """Create aiohttp app and register RPC routes for real mode."""
     app = web.Application()
-    consumer = HttpConsumer(settings.provider_endpoint, settings.poll_interval_ms)
+    consumer = HttpConsumer(
+        settings.provider_endpoint,
+        settings.poll_interval_ms,
+        settings.provider_username,
+        settings.provider_password,
+    )
     cache: dict[str, float] | None = None
 
     async def _start_background(app: web.Application) -> None:

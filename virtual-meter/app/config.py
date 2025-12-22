@@ -22,6 +22,8 @@ class Settings(BaseModel):
     """Typed settings for the add-on."""
 
     provider_endpoint: str
+    provider_username: str | None = None
+    provider_password: str | None = None
     poll_interval_ms: int
     mock_mode: bool = False
     http_port: int = 80

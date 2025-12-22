@@ -17,9 +17,11 @@ class ConsumerSnapshot:
 
 
 class HttpConsumer:
-    def __init__(self, endpoint: str, poll_interval_ms: int) -> None:
+    def __init__(self, endpoint: str, poll_interval_ms: int, username: str | None, password: str | None) -> None:
         self.endpoint = endpoint
         self.poll_interval_ms = poll_interval_ms
+        self.username = username
+        self.password = password
         self.latest: ConsumerSnapshot | None = None
         self._session: ClientSession | None = None
 
@@ -31,15 +33,19 @@ class HttpConsumer:
         logger.info("Starting provider polling: %s", self.endpoint)
         while True:
             try:
-                async with self._session.get(self.endpoint) as resp:
+                params = None
+                if self.username and self.password:
+                    params = {"user": self.username, "password": self.password}
+                async with self._session.get(self.endpoint, params=params) as resp:
                     payload = await resp.json(content_type=None)
                     if isinstance(payload, dict):
                         self.latest = ConsumerSnapshot(data=payload, fetched_at=datetime.now(timezone.utc))
                         logger.debug("Provider payload keys: %s", list(payload.keys()))
+                        if "WARNING" in payload:
+                            logger.error("Provider warning response: %s", payload)
             except Exception:
                 logger.exception("Failed to fetch provider endpoint")
                 # Keep last known good data
-                pass
             await _sleep_ms(self.poll_interval_ms)
 
     def get_latest(self) -> ConsumerSnapshot | None:

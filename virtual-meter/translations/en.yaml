@@ -5,6 +5,12 @@ configuration:
   provider_endpoint:
     name: Provider Endpoint
     description: HTTP endpoint to poll for source data.
+  provider_username:
+    name: Provider Username
+    description: Optional username for provider endpoint authentication.
+  provider_password:
+    name: Provider Password
+    description: Optional password for provider endpoint authentication.
   poll_interval_ms:
     name: Polling Interval (ms)
     description: Endpoint polling interval for provider and consumer endpoint in milliseconds (250-5000).
