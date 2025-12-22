@@ -17,7 +17,13 @@ class ConsumerSnapshot:
 
 
 class HttpConsumer:
-    def __init__(self, endpoint: str, poll_interval_ms: int, username: str | None, password: str | None) -> None:
+    def __init__(
+        self,
+        endpoint: str,
+        poll_interval_ms: int,
+        username: str | None,
+        password: str | None,
+    ) -> None:
         self.endpoint = endpoint
         self.poll_interval_ms = poll_interval_ms
         self.username = username
@@ -39,7 +45,9 @@ class HttpConsumer:
                 async with self._session.get(self.endpoint, params=params) as resp:
                     payload = await resp.json(content_type=None)
                     if isinstance(payload, dict):
-                        self.latest = ConsumerSnapshot(data=payload, fetched_at=datetime.now(timezone.utc))
+                        self.latest = ConsumerSnapshot(
+                            data=payload, fetched_at=datetime.now(timezone.utc)
+                        )
                         logger.debug("Provider payload keys: %s", list(payload.keys()))
                         if "WARNING" in payload:
                             logger.error("Provider warning response: %s", payload)

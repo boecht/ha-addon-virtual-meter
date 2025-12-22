@@ -10,8 +10,14 @@ from aiohttp import web
 
 from .config import Settings
 from .consumer import HttpConsumer
-from .mock import MOCK_DEVICE_INFO, MOCK_SHELLY_STATUS, _device_mac, _local_ip
-from .transformer import em_status_from_values, transform
+from .shelly import (
+    MOCK_DEVICE_INFO,
+    MOCK_SHELLY_STATUS,
+    device_mac,
+    em_status_from_values,
+    local_ip,
+)
+from .transformer import transform
 
 
 def _json_paths(settings: Settings) -> dict[str, str | None]:
@@ -81,12 +87,14 @@ def create_app(settings: Settings) -> web.Application:
 
     async def _start_background(app: web.Application) -> None:
         from asyncio import sleep
+
         await sleep(0)
         app["consumer_task"] = app.loop.create_task(consumer.start())
         logging.getLogger("virtual_meter.provider").info("Consumer task started")
 
     async def _cleanup(app: web.Application) -> None:
         from asyncio import sleep
+
         await sleep(0)
         task = app.get("consumer_task")
         if task:
@@ -98,15 +106,24 @@ def create_app(settings: Settings) -> web.Application:
 
     async def _compute_values() -> dict[str, float]:
         from asyncio import sleep
+
         await sleep(0)
         nonlocal cache
         latest = consumer.get_latest()
         source_json = latest.data if latest else {}
-        values = transform(source_json, _json_paths(settings), _overrides(settings), settings.defaults, derive=True)
+        values = transform(
+            source_json,
+            _json_paths(settings),
+            _overrides(settings),
+            settings.defaults,
+            derive=True,
+        )
         if values:
             cache = values
             return values
-        logging.getLogger("virtual_meter.provider").warning("Using cached values; no data available")
+        logging.getLogger("virtual_meter.provider").warning(
+            "Using cached values; no data available"
+        )
         return cache or {}
 
     async def shelly_get_status(request: web.Request) -> web.Response:
@@ -114,13 +131,13 @@ def create_app(settings: Settings) -> web.Application:
         em_status = em_status_from_values(values)
         status = dict(MOCK_SHELLY_STATUS)
         sys_status = dict(status["sys"])
-        sys_status["mac"] = _device_mac()
+        sys_status["mac"] = device_mac()
         sys_status["time"] = datetime.now().strftime("%H:%M")
         sys_status["unixtime"] = int(datetime.now().timestamp())
         status["sys"] = sys_status
 
         eth_status = dict(status["eth"])
-        eth_status["ip"] = _local_ip(request)
+        eth_status["ip"] = local_ip(request)
         status["eth"] = eth_status
 
         status["em:0"] = em_status
@@ -133,7 +150,7 @@ def create_app(settings: Settings) -> web.Application:
 
     async def shelly_device_info(request: web.Request) -> web.Response:
         info = dict(MOCK_DEVICE_INFO)
-        info["mac"] = _device_mac()
+        info["mac"] = device_mac()
         return web.json_response(info)
 
     @web.middleware
@@ -151,7 +168,9 @@ def create_app(settings: Settings) -> web.Application:
                 "accept": request.headers.get("Accept"),
             },
         }
-        logging.getLogger("virtual_meter.requests").info(json.dumps(payload, sort_keys=True))
+        logging.getLogger("virtual_meter.requests").info(
+            json.dumps(payload, sort_keys=True)
+        )
         return response
 
     app.middlewares.append(log_requests)

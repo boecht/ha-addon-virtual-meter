@@ -26,9 +26,13 @@ def main() -> None:
         format="%(asctime)s %(levelname)s %(name)s %(message)s",
     )
     settings = load_settings()
-    logging.getLogger().setLevel(logging.DEBUG if settings.debug_logging else logging.INFO)
+    logging.getLogger().setLevel(
+        logging.DEBUG if settings.debug_logging else logging.INFO
+    )
     logging.getLogger("virtual_meter.startup").info(
-        "Starting add-on (mock_mode=%s, http_port=%s)", settings.mock_mode, settings.http_port
+        "Starting add-on (mock_mode=%s, http_port=%s)",
+        settings.mock_mode,
+        settings.http_port,
     )
 
     if settings.mock_mode:
@@ -41,6 +45,7 @@ def main() -> None:
     async def _cleanup(app: web.Application) -> None:
         mdns.close()
         from asyncio import sleep
+
         await sleep(0)
 
     app.on_cleanup.append(_cleanup)

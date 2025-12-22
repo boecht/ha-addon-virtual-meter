@@ -107,7 +107,9 @@ def load_settings(path: str = "/data/options.json") -> Settings:
     """
     options_path = Path(path)
     defaults = _load_defaults()
-    logging.getLogger("virtual_meter.config").info("Loaded defaults keys: %s", sorted(defaults.keys()))
+    logging.getLogger("virtual_meter.config").info(
+        "Loaded defaults keys: %s", sorted(defaults.keys())
+    )
     if not options_path.exists():
         # Fall back to defaults for local dev
         return Settings(

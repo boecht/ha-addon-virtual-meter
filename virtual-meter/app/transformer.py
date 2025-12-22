@@ -22,7 +22,9 @@ def _get_path(data: dict[str, Any], path: str) -> Any:
     return current
 
 
-def _set_if_missing(target: dict[str, float | None], key: str, value: float | None) -> None:
+def _set_if_missing(
+    target: dict[str, float | None], key: str, value: float | None
+) -> None:
     if target.get(key) is None and value is not None:
         target[key] = value
 
@@ -36,7 +38,11 @@ def _to_float(value: Any) -> float | None:
         return None
 
 
-def _apply_json_values(target: dict[str, float | None], source: dict[str, Any], mappings: dict[str, str | None]) -> None:
+def _apply_json_values(
+    target: dict[str, float | None],
+    source: dict[str, Any],
+    mappings: dict[str, str | None],
+) -> None:
     for key, path in mappings.items():
         if not path:
             continue
@@ -45,51 +51,86 @@ def _apply_json_values(target: dict[str, float | None], source: dict[str, Any], 
             target[key] = value
 
 
-def _apply_value_overrides(target: dict[str, float | None], overrides: dict[str, float | None]) -> None:
+def _apply_value_overrides(
+    target: dict[str, float | None], overrides: dict[str, float | None]
+) -> None:
     for key, value in overrides.items():
         _set_if_missing(target, key, value)
 
 
 def _derive_values(values: dict[str, float | None]) -> None:
     for phase in ("l1", "l2", "l3"):
-        current = values.get(f"{phase}_current")
-        voltage = values.get(f"{phase}_voltage")
         act_power = values.get(f"{phase}_act_power")
         aprt_power = values.get(f"{phase}_aprt_power")
+        current = values.get(f"{phase}_current")
         pf = values.get(f"{phase}_pf")
+        voltage = values.get(f"{phase}_voltage")
 
+        if act_power is None and current is None:
+            act_power = 0.0
+            values[f"{phase}_act_power"] = act_power
         if act_power is None and current is not None and voltage is not None:
-            values[f"{phase}_act_power"] = current * voltage
-        if current is None and act_power is not None and voltage:
-            values[f"{phase}_current"] = act_power / voltage
+            act_power = current * voltage
+            values[f"{phase}_act_power"] = act_power
+        if act_power is not None and current is None and voltage is not None:
+            values[f"{phase}_current"] = 0.0 if voltage == 0 else act_power / voltage
+        if act_power is not None and current is not None and voltage is None:
+            values[f"{phase}_voltage"] = 0.0 if current == 0 else act_power / current
+        if act_power is not None and aprt_power is None and pf is not None:
+            values[f"{phase}_aprt_power"] = 0.0 if pf == 0 else act_power / pf
+        if act_power is not None and aprt_power is not None and pf is None:
+            values[f"{phase}_pf"] = 0.0 if aprt_power == 0 else act_power / aprt_power
 
-        if aprt_power is None and act_power is not None and pf:
-            values[f"{phase}_aprt_power"] = act_power / pf
-        if pf is None and aprt_power is not None and act_power is not None and aprt_power:
-            values[f"{phase}_pf"] = act_power / aprt_power
 
+def _derive_totals(values: dict[str, float | None]) -> None:
     if values.get("total_current") is None:
-        total = sum(v for v in [values.get("l1_current"), values.get("l2_current"), values.get("l3_current")] if v is not None)
-        if total > 0:
-            values["total_current"] = total
+        vals = [
+            v
+            for v in [
+                values.get("l1_current"),
+                values.get("l2_current"),
+                values.get("l3_current"),
+            ]
+            if v is not None
+        ]
+        if vals:
+            values["total_current"] = sum(vals)
+
+    if values.get("total_act_power") is None:
+        vals = [
+            v
+            for v in [
+                values.get("l1_act_power"),
+                values.get("l2_act_power"),
+                values.get("l3_act_power"),
+            ]
+            if v is not None
+        ]
+        if vals:
+            values["total_act_power"] = sum(vals)
+
+    if values.get("total_aprt_power") is None:
+        vals = [
+            v
+            for v in [
+                values.get("l1_aprt_power"),
+                values.get("l2_aprt_power"),
+                values.get("l3_aprt_power"),
+            ]
+            if v is not None
+        ]
+        if vals:
+            values["total_aprt_power"] = sum(vals)
 
     if values.get("n_current") is None:
         total = values.get("total_current")
         if total is not None:
             values["n_current"] = total
 
-    if values.get("total_act_power") is None:
-        total = sum(v for v in [values.get("l1_act_power"), values.get("l2_act_power"), values.get("l3_act_power")] if v is not None)
-        if total > 0:
-            values["total_act_power"] = total
 
-    if values.get("total_aprt_power") is None:
-        total = sum(v for v in [values.get("l1_aprt_power"), values.get("l2_aprt_power"), values.get("l3_aprt_power")] if v is not None)
-        if total > 0:
-            values["total_aprt_power"] = total
-
-
-def _apply_defaults(values: dict[str, float | None], defaults: dict[str, float]) -> None:
+def _apply_defaults(
+    values: dict[str, float | None], defaults: dict[str, float]
+) -> None:
     for key, value in defaults.items():
         _set_if_missing(values, key, value)
 
@@ -109,40 +150,7 @@ def transform(
     if derive:
         _derive_values(working)
     _apply_defaults(working, defaults)
+    _derive_values(working)
+    _derive_totals(working)
 
     return {key: value for key, value in working.items() if value is not None}
-
-
-def em_status_from_values(values: dict[str, float]) -> dict[str, Any]:
-    """Build EM.GetStatus response from merged values."""
-    return {
-        "id": 0,
-        "a_current": values.get("l1_current"),
-        "a_voltage": values.get("l1_voltage"),
-        "a_act_power": values.get("l1_act_power"),
-        "a_aprt_power": values.get("l1_aprt_power"),
-        "a_pf": values.get("l1_pf"),
-        "a_freq": values.get("l1_freq"),
-        "a_errors": [],
-        "b_current": values.get("l2_current"),
-        "b_voltage": values.get("l2_voltage"),
-        "b_act_power": values.get("l2_act_power"),
-        "b_aprt_power": values.get("l2_aprt_power"),
-        "b_pf": values.get("l2_pf"),
-        "b_freq": values.get("l2_freq"),
-        "b_errors": [],
-        "c_current": values.get("l3_current"),
-        "c_voltage": values.get("l3_voltage"),
-        "c_act_power": values.get("l3_act_power"),
-        "c_aprt_power": values.get("l3_aprt_power"),
-        "c_pf": values.get("l3_pf"),
-        "c_freq": values.get("l3_freq"),
-        "c_errors": [],
-        "n_current": values.get("n_current"),
-        "n_errors": [],
-        "total_current": values.get("total_current"),
-        "total_act_power": values.get("total_act_power"),
-        "total_aprt_power": values.get("total_aprt_power"),
-        "user_calibrated_phase": [],
-        "errors": [],
-    }
