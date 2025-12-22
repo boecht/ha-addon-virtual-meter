@@ -1,0 +1,111 @@
+name: Virtual Meter
+version: "0.0.1"
+slug: virtual-meter
+description: "Emulate Shelly Pro 3EM (Gen2) for Hoymiles battery systems using HTTP source data."
+url: "https://github.com/boecht/ha-addon-virtual-meter"
+arch:
+  - amd64
+  - aarch64
+  - armv7
+  - armhf
+  - i386
+startup: application
+#watchdog: "http://[HOST]:[PORT:80]/health/"
+host_network: true
+#apparmor: true
+ingress: false
+homeassistant_api: false
+options:
+  provider_endpoint: "http://tasmota-aeaa40-2624.fritz.box/cm?cmnd=Status%2010"
+  poll_interval_ms: 1000
+  mock_mode: false
+  l1_current_json: "StatusSNS.tasmota.strom_l1"
+  l1_current_value: null
+  l1_voltage_json: "StatusSNS.tasmota.spannung_l1"
+  l1_voltage_value: null
+  l1_act_power_json: "StatusSNS.tasmota.wirkleistung_l1"
+  l1_act_power_value: null
+  l1_aprt_power_json: null
+  l1_aprt_power_value: null
+  l1_pf_json: null
+  l1_pf_value: null
+  l1_freq_json: "StatusSNS.tasmota.netz_frequenz"
+  l1_freq_value: null
+  l2_current_json: "StatusSNS.tasmota.strom_l2"
+  l2_current_value: null
+  l2_voltage_json: "StatusSNS.tasmota.spannung_l2"
+  l2_voltage_value: null
+  l2_act_power_json: "StatusSNS.tasmota.wirkleistung_l2"
+  l2_act_power_value: null
+  l2_aprt_power_json: null
+  l2_aprt_power_value: null
+  l2_pf_json: null
+  l2_pf_value: null
+  l2_freq_json: "StatusSNS.tasmota.netz_frequenz"
+  l2_freq_value: null
+  l3_current_json: "StatusSNS.tasmota.strom_l3"
+  l3_current_value: null
+  l3_voltage_json: "StatusSNS.tasmota.spannung_l3"
+  l3_voltage_value: null
+  l3_act_power_json: "StatusSNS.tasmota.wirkleistung_l3"
+  l3_act_power_value: null
+  l3_aprt_power_json: null
+  l3_aprt_power_value: null
+  l3_pf_json: null
+  l3_pf_value: null
+  l3_freq_json: "StatusSNS.tasmota.netz_frequenz"
+  l3_freq_value: null
+  total_current_json: null
+  total_current_value: null
+  total_act_power_json: null
+  total_act_power_value: null
+  total_aprt_power_json: null
+  total_aprt_power_value: null
+  debug_logging: false
+schema:
+  provider_endpoint: str
+  poll_interval_ms: int(250,5000)
+  mock_mode: bool
+  l1_current_json: str?
+  l1_current_value: float?
+  l1_voltage_json: str?
+  l1_voltage_value: float?
+  l1_act_power_json: str?
+  l1_act_power_value: float?
+  l1_aprt_power_json: str?
+  l1_aprt_power_value: float?
+  l1_pf_json: str?
+  l1_pf_value: float?
+  l1_freq_json: str?
+  l1_freq_value: float?
+  l2_current_json: str?
+  l2_current_value: float?
+  l2_voltage_json: str?
+  l2_voltage_value: float?
+  l2_act_power_json: str?
+  l2_act_power_value: float?
+  l2_aprt_power_json: str?
+  l2_aprt_power_value: float?
+  l2_pf_json: str?
+  l2_pf_value: float?
+  l2_freq_json: str?
+  l2_freq_value: float?
+  l3_current_json: str?
+  l3_current_value: float?
+  l3_voltage_json: str?
+  l3_voltage_value: float?
+  l3_act_power_json: str?
+  l3_act_power_value: float?
+  l3_aprt_power_json: str?
+  l3_aprt_power_value: float?
+  l3_pf_json: str?
+  l3_pf_value: float?
+  l3_freq_json: str?
+  l3_freq_value: float?
+  total_current_json: str?
+  total_current_value: float?
+  total_act_power_json: str?
+  total_act_power_value: float?
+  total_aprt_power_json: str?
+  total_aprt_power_value: float?
+  debug_logging: bool
