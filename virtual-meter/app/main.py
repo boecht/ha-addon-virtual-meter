@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import logging
+
 from aiohttp import web
 
 from .provider import create_app
@@ -20,6 +22,10 @@ def main() -> None:
     - Run aiohttp app on port 80 (host network)
     """
     settings = load_settings()
+    logging.basicConfig(
+        level=logging.DEBUG if settings.debug_logging else logging.INFO,
+        format="%(asctime)s %(levelname)s %(name)s %(message)s",
+    )
 
     if settings.mock_mode:
         app = create_mock_app(settings)

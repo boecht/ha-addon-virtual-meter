@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 from datetime import datetime
+import json
+import logging
 
 from aiohttp import web
 
@@ -32,6 +34,7 @@ def _json_paths(settings: Settings) -> dict[str, str | None]:
         "l3_aprt_power": settings.l3_aprt_power_json,
         "l3_pf": settings.l3_pf_json,
         "l3_freq": settings.l3_freq_json,
+        "n_current": settings.n_current_json,
         "total_current": settings.total_current_json,
         "total_act_power": settings.total_act_power_json,
         "total_aprt_power": settings.total_aprt_power_json,
@@ -58,6 +61,7 @@ def _overrides(settings: Settings) -> dict[str, float | None]:
         "l3_aprt_power": settings.l3_aprt_power_value,
         "l3_pf": settings.l3_pf_value,
         "l3_freq": settings.l3_freq_value,
+        "n_current": settings.n_current_value,
         "total_current": settings.total_current_value,
         "total_act_power": settings.total_act_power_value,
         "total_aprt_power": settings.total_aprt_power_value,
@@ -118,6 +122,26 @@ def create_app(settings: Settings) -> web.Application:
     async def em_get_status(request: web.Request) -> web.Response:
         values = await _compute_values()
         return web.json_response(em_status_from_values(values))
+
+    @web.middleware
+    async def log_requests(request: web.Request, handler):
+        response = await handler(request)
+        payload = {
+            "ts": datetime.now().isoformat(),
+            "method": request.method,
+            "path": request.path,
+            "query": request.query_string,
+            "status": response.status,
+            "remote": request.remote,
+            "headers": {
+                "user-agent": request.headers.get("User-Agent"),
+                "accept": request.headers.get("Accept"),
+            },
+        }
+        logging.getLogger("virtual_meter.requests").info(json.dumps(payload, sort_keys=True))
+        return response
+
+    app.middlewares.append(log_requests)
 
     app.router.add_get("/rpc/Shelly.GetStatus", shelly_get_status)
     app.router.add_get("/rpc/EM.GetStatus", em_get_status)

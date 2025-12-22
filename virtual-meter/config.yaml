@@ -1,5 +1,5 @@
 name: Virtual Meter
-version: "0.0.5"
+version: "0.0.6"
 slug: virtual-meter
 description: "Shelly Pro 3EM emulator for Hoymiles battery systems"
 url: "https://github.com/boecht/ha-addon-virtual-meter"
@@ -74,6 +74,8 @@ schema:
   l3_pf_value: float?
   l3_freq_json: str?
   l3_freq_value: float?
+  n_current_json: str?
+  n_current_value: float?
   total_current_json: str?
   total_current_value: float?
   total_act_power_json: str?

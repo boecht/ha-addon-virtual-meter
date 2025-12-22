@@ -60,6 +60,8 @@ class Settings(BaseModel):
     l3_pf_value: float | None = None
     l3_freq_json: str | None = None
     l3_freq_value: float | None = None
+    n_current_json: str | None = None
+    n_current_value: float | None = None
     total_current_json: str | None = None
     total_current_value: float | None = None
     total_act_power_json: str | None = None

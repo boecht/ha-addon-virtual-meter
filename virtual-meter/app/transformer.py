@@ -73,6 +73,11 @@ def _derive_values(values: dict[str, float | None]) -> None:
         if total > 0:
             values["total_current"] = total
 
+    if values.get("n_current") is None:
+        total = values.get("total_current")
+        if total is not None:
+            values["n_current"] = total
+
     if values.get("total_act_power") is None:
         total = sum(v for v in [values.get("l1_act_power"), values.get("l2_act_power"), values.get("l3_act_power")] if v is not None)
         if total > 0:

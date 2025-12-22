@@ -7,6 +7,7 @@ from datetime import datetime, timezone
 from typing import Any
 
 from aiohttp import ClientSession, ClientTimeout
+import logging
 
 
 @dataclass
@@ -24,6 +25,7 @@ class HttpConsumer:
 
     async def start(self) -> None:
         """Start background polling."""
+        logger = logging.getLogger("virtual_meter.consumer")
         timeout = ClientTimeout(total=10)
         self._session = ClientSession(timeout=timeout)
         while True:
@@ -33,6 +35,7 @@ class HttpConsumer:
                     if isinstance(payload, dict):
                         self.latest = ConsumerSnapshot(data=payload, fetched_at=datetime.now(timezone.utc))
             except Exception:
+                logger.exception("Failed to fetch provider endpoint")
                 # Keep last known good data
                 pass
             await _sleep_ms(self.poll_interval_ms)

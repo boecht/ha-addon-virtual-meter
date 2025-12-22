@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import logging
 from datetime import datetime, timezone
 import uuid
 from typing import Any, Callable
@@ -205,7 +206,7 @@ def _log_request(request: web.Request, rpc_method: str | None, status: int) -> N
             "content-type": request.headers.get("Content-Type"),
         },
     }
-    print(json.dumps(payload, sort_keys=True))
+    logging.getLogger("virtual_meter.requests").info(json.dumps(payload, sort_keys=True))
 
 
 def _rpc_response(
@@ -307,6 +308,7 @@ def _override_map(settings: Settings) -> dict[str, float | None]:
         "l3_aprt_power": settings.l3_aprt_power_value,
         "l3_pf": settings.l3_pf_value,
         "l3_freq": settings.l3_freq_value,
+        "n_current": settings.n_current_value,
         "total_current": settings.total_current_value,
         "total_act_power": settings.total_act_power_value,
         "total_aprt_power": settings.total_aprt_power_value,
@@ -392,8 +394,12 @@ def _extract_params_from_query(query: dict[str, str]) -> dict[str, Any]:
 def _mock_middleware(settings: Settings):
     @web.middleware
     async def middleware(request: web.Request, handler):
-        response = await handler(request)
-        if settings.mock_mode and request.path != "/rpc":
+        try:
+            response = await handler(request)
+        except Exception as exc:
+            logging.getLogger("virtual_meter.requests").exception("Request failed")
+            raise exc
+        if settings.mock_mode:
             rpc_method = request.match_info.get("method")
             _log_request(request, rpc_method, response.status)
         return response
@@ -436,7 +442,6 @@ def create_app(settings: Settings) -> web.Application:
             response = _rpc_response_from_body(body, None, error)
         else:
             response = _rpc_response_from_body(body, result, None)
-        _log_request(request, method, response.status)
         return response
 
     async def rpc_method(request: web.Request) -> web.Response:
