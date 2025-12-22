@@ -10,7 +10,7 @@ from aiohttp import web
 
 from .config import Settings
 from .consumer import HttpConsumer
-from .mock import MOCK_SHELLY_STATUS, _device_mac, _local_ip
+from .mock import MOCK_DEVICE_INFO, MOCK_SHELLY_STATUS, _device_mac, _local_ip
 from .transformer import em_status_from_values, transform
 
 
@@ -78,6 +78,7 @@ def create_app(settings: Settings) -> web.Application:
         from asyncio import sleep
         await sleep(0)
         app["consumer_task"] = app.loop.create_task(consumer.start())
+        logging.getLogger("virtual_meter.provider").info("Consumer task started")
 
     async def _cleanup(app: web.Application) -> None:
         from asyncio import sleep
@@ -85,6 +86,7 @@ def create_app(settings: Settings) -> web.Application:
         task = app.get("consumer_task")
         if task:
             task.cancel()
+        logging.getLogger("virtual_meter.provider").info("Cleanup complete")
 
     app.on_startup.append(_start_background)
     app.on_cleanup.append(_cleanup)
@@ -99,6 +101,7 @@ def create_app(settings: Settings) -> web.Application:
         if values:
             cache = values
             return values
+        logging.getLogger("virtual_meter.provider").warning("Using cached values; no data available")
         return cache or {}
 
     async def shelly_get_status(request: web.Request) -> web.Response:
@@ -123,6 +126,11 @@ def create_app(settings: Settings) -> web.Application:
         values = await _compute_values()
         return web.json_response(em_status_from_values(values))
 
+    async def shelly_device_info(request: web.Request) -> web.Response:
+        info = dict(MOCK_DEVICE_INFO)
+        info["mac"] = _device_mac()
+        return web.json_response(info)
+
     @web.middleware
     async def log_requests(request: web.Request, handler):
         response = await handler(request)
@@ -145,5 +153,6 @@ def create_app(settings: Settings) -> web.Application:
 
     app.router.add_get("/rpc/Shelly.GetStatus", shelly_get_status)
     app.router.add_get("/rpc/EM.GetStatus", em_get_status)
+    app.router.add_get("/shelly", shelly_device_info)
 
     return app

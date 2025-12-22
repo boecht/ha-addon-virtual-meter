@@ -411,6 +411,7 @@ def create_app(settings: Settings) -> web.Application:
     """Create aiohttp app and register RPC routes (mock mode only)."""
     app = web.Application(middlewares=[_mock_middleware(settings)])
     app["settings"] = settings
+    logging.getLogger("virtual_meter.mock").info("Mock API initialized")
 
     async def shelly_get_status(request: web.Request) -> web.Response:
         from asyncio import sleep

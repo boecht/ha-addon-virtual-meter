@@ -9,12 +9,13 @@ Pseudocode notes:
 from __future__ import annotations
 
 import json
+import logging
 from pathlib import Path
 from typing import Any
 
 from pydantic import BaseModel
 
-DEFAULTS_PATH = Path("/app/defaults.json")
+DEFAULTS_PATH = Path("defaults.json")
 
 
 class Settings(BaseModel):
@@ -79,11 +80,18 @@ def _normalize_value(value: Any) -> Any:
 
 
 def _load_defaults(path: Path = DEFAULTS_PATH) -> dict[str, Any]:
-    if path.exists():
-        return json.loads(path.read_text())
-    fallback = Path(__file__).resolve().parents[1] / "defaults.json"
-    if fallback.exists():
-        return json.loads(fallback.read_text())
+    candidates = [
+        path,
+        Path("/app/defaults.json"),
+        Path(__file__).resolve().parents[1] / "defaults.json",
+    ]
+    logger = logging.getLogger("virtual_meter.config")
+    for candidate in candidates:
+        logger.debug("Checking defaults path: %s", candidate)
+        if candidate.exists():
+            logger.info("Using defaults file: %s", candidate)
+            return json.loads(candidate.read_text())
+    logger.warning("No defaults.json found; using empty defaults")
     return {}
 
 
@@ -97,6 +105,7 @@ def load_settings(path: str = "/data/options.json") -> Settings:
     """
     options_path = Path(path)
     defaults = _load_defaults()
+    logging.getLogger("virtual_meter.config").info("Loaded defaults keys: %s", sorted(defaults.keys()))
     if not options_path.exists():
         # Fall back to defaults for local dev
         return Settings(

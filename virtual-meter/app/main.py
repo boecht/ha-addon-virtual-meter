@@ -21,10 +21,14 @@ def main() -> None:
     - Start mDNS advertisement for discovery
     - Run aiohttp app on port 80 (host network)
     """
-    settings = load_settings()
     logging.basicConfig(
-        level=logging.DEBUG if settings.debug_logging else logging.INFO,
+        level=logging.INFO,
         format="%(asctime)s %(levelname)s %(name)s %(message)s",
+    )
+    settings = load_settings()
+    logging.getLogger().setLevel(logging.DEBUG if settings.debug_logging else logging.INFO)
+    logging.getLogger("virtual_meter.startup").info(
+        "Starting add-on (mock_mode=%s, http_port=%s)", settings.mock_mode, settings.http_port
     )
 
     if settings.mock_mode:

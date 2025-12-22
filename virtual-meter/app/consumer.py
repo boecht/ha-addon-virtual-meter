@@ -28,12 +28,14 @@ class HttpConsumer:
         logger = logging.getLogger("virtual_meter.consumer")
         timeout = ClientTimeout(total=10)
         self._session = ClientSession(timeout=timeout)
+        logger.info("Starting provider polling: %s", self.endpoint)
         while True:
             try:
                 async with self._session.get(self.endpoint) as resp:
                     payload = await resp.json(content_type=None)
                     if isinstance(payload, dict):
                         self.latest = ConsumerSnapshot(data=payload, fetched_at=datetime.now(timezone.utc))
+                        logger.debug("Provider payload keys: %s", list(payload.keys()))
             except Exception:
                 logger.exception("Failed to fetch provider endpoint")
                 # Keep last known good data
