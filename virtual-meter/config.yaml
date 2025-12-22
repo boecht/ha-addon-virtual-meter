@@ -10,6 +10,7 @@ arch:
   - armhf
   - i386
 startup: application
+init: false
 #watchdog: "http://[HOST]:[PORT:80]/health/"
 host_network: true
 #apparmor: true
