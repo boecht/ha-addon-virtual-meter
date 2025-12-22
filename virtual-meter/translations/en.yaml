@@ -10,7 +10,7 @@ configuration:
     description: HTTP endpoint to poll for source data.
   poll_interval_ms:
     name: Polling Interval (ms)
-    description: Provider endpoint polling interval in milliseconds (250-5000).
+    description: Endpoint polling interval for provider and consumer endpoint in milliseconds (250-5000).
   l1_current_json:
     name: L1 Current (JSON Path)
     description: Path to L1 current in provider endpoint, JSON values override numeric values.

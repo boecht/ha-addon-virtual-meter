@@ -20,51 +20,21 @@ options:
   poll_interval_ms: 1000
   mock_mode: false
   l1_current_json: "StatusSNS.tasmota.strom_l1"
-  l1_current_value: null
   l1_voltage_json: "StatusSNS.tasmota.spannung_l1"
-  l1_voltage_value: null
   l1_act_power_json: "StatusSNS.tasmota.wirkleistung_l1"
-  l1_act_power_value: null
-  l1_aprt_power_json: null
-  l1_aprt_power_value: null
-  l1_pf_json: null
-  l1_pf_value: null
   l1_freq_json: "StatusSNS.tasmota.netz_frequenz"
-  l1_freq_value: null
   l2_current_json: "StatusSNS.tasmota.strom_l2"
-  l2_current_value: null
   l2_voltage_json: "StatusSNS.tasmota.spannung_l2"
-  l2_voltage_value: null
   l2_act_power_json: "StatusSNS.tasmota.wirkleistung_l2"
-  l2_act_power_value: null
-  l2_aprt_power_json: null
-  l2_aprt_power_value: null
-  l2_pf_json: null
-  l2_pf_value: null
   l2_freq_json: "StatusSNS.tasmota.netz_frequenz"
-  l2_freq_value: null
   l3_current_json: "StatusSNS.tasmota.strom_l3"
-  l3_current_value: null
   l3_voltage_json: "StatusSNS.tasmota.spannung_l3"
-  l3_voltage_value: null
   l3_act_power_json: "StatusSNS.tasmota.wirkleistung_l3"
-  l3_act_power_value: null
-  l3_aprt_power_json: null
-  l3_aprt_power_value: null
-  l3_pf_json: null
-  l3_pf_value: null
   l3_freq_json: "StatusSNS.tasmota.netz_frequenz"
-  l3_freq_value: null
-  total_current_json: null
-  total_current_value: null
-  total_act_power_json: null
-  total_act_power_value: null
-  total_aprt_power_json: null
-  total_aprt_power_value: null
   debug_logging: false
 schema:
   provider_endpoint: str
-  poll_interval_ms: int(250,5000)
+  poll_interval_ms: int(250,)
   mock_mode: bool
   l1_current_json: str?
   l1_current_value: float?
