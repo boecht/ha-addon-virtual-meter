@@ -20,7 +20,7 @@
 - `total_act_power`
 - `a_act_power`, `b_act_power`, `c_act_power`
 - `voltage`, `current`, `pf`
-(These must appear in the appropriate Shelly Gen2 structures/fields.) (Source: "Functional Requirements"; "Hoymiles 192 AC Assumptions & Validation Plan")
+(These must appear in the appropriate Shelly Gen2 structures/fields.) (Source: "Functional Requirements"; "Hoymiles 1920 AC Assumptions & Validation Plan")
 
 ## Data acquisition + mapping rules
 - Poll a **Tasmota** device at a configurable interval and map readings into Shelly EM fields.
@@ -55,7 +55,7 @@
 
 ## External client behavior assumptions (keep in mind)
 - Hoymiles likely calls `GET /rpc/Shelly.GetStatus` and `GET /rpc/EM.GetStatus?id=0`.
-- Poll cadence unknown; **protocol capture logs** should be used to confirm. (Source: "External Client Behavior"; "Hoymiles 192 AC Assumptions & Validation Plan")
+- Poll cadence unknown; **protocol capture logs** should be used to confirm. (Source: "External Client Behavior"; "Hoymiles 1920 AC Assumptions & Validation Plan")
 
 ## References (Notion)
 - Project hub: https://www.notion.so/2d0344e4ba8b810c869aef8a98dcb1da
@@ -64,4 +64,4 @@
 - Technical & Architectural Requirements: https://www.notion.so/2d0344e4ba8b811f98dec2d7b791d591
 - Shelly Pro 3EM Gen2 API Reference: https://www.notion.so/2d1344e4ba8b818ebf12c255e8d34df2
 - External Client Behavior: https://www.notion.so/2d1344e4ba8b8199a240e26a398907da
-- Hoymiles 192 AC Assumptions & Validation Plan: https://www.notion.so/2d0344e4ba8b8163a1a1dcbdb70f528c
+- Hoymiles 1920 AC Assumptions & Validation Plan: https://www.notion.so/2d0344e4ba8b8163a1a1dcbdb70f528c

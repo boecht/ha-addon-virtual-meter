@@ -1,6 +1,0 @@
-{
-  "name": "Virtual Meter",
-  "url": "https://github.com/boecht/ha-addon-virtual-meter",
-  "maintainer": "boecht <https://github.com/boecht>",
-  "addons": ["virtual-meter"]
-}
