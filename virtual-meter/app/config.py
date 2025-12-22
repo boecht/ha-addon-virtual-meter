@@ -23,6 +23,7 @@ class Settings(BaseModel):
     provider_endpoint: str
     poll_interval_ms: int
     mock_mode: bool = False
+    http_port: int = 80
     l1_current_json: str | None = None
     l1_current_value: float | None = None
     l1_voltage_json: str | None = None
@@ -98,6 +99,7 @@ def load_settings(path: str = "/data/options.json") -> Settings:
             poll_interval_ms=1000,
             mock_mode=False,
             debug_logging=False,
+            http_port=80,
             defaults=defaults,
         )
 

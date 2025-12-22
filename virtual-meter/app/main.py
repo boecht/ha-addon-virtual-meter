@@ -35,7 +35,7 @@ def main() -> None:
 
     app.on_cleanup.append(_cleanup)
 
-    web.run_app(app, host="0.0.0.0", port=80)
+    web.run_app(app, host="0.0.0.0", port=settings.http_port)
 
 
 if __name__ == "__main__":

@@ -1,5 +1,5 @@
 name: Virtual Meter
-version: "0.0.4"
+version: "0.0.5"
 slug: virtual-meter
 description: "Shelly Pro 3EM emulator for Hoymiles battery systems"
 url: "https://github.com/boecht/ha-addon-virtual-meter"
@@ -17,9 +17,9 @@ host_network: true
 ingress: false
 homeassistant_api: false
 options:
+  http_port: 80
   provider_endpoint: "http://tasmota-aeaa40-2624.fritz.box/cm?cmnd=Status%2010"
   poll_interval_ms: 1000
-  mock_mode: false
   l1_current_json: "StatusSNS.tasmota.strom_l1"
   l1_voltage_json: "StatusSNS.tasmota.spannung_l1"
   l1_act_power_json: "StatusSNS.tasmota.wirkleistung_l1"
@@ -32,11 +32,12 @@ options:
   l3_voltage_json: "StatusSNS.tasmota.spannung_l3"
   l3_act_power_json: "StatusSNS.tasmota.wirkleistung_l3"
   l3_freq_json: "StatusSNS.tasmota.netz_frequenz"
+  mock_mode: false
   debug_logging: false
 schema:
+  http_port: int(1,65535)
   provider_endpoint: str
   poll_interval_ms: int(250,)
-  mock_mode: bool
   l1_current_json: str?
   l1_current_value: float?
   l1_voltage_json: str?
@@ -79,4 +80,5 @@ schema:
   total_act_power_value: float?
   total_aprt_power_json: str?
   total_aprt_power_value: float?
+  mock_mode: bool
   debug_logging: bool
