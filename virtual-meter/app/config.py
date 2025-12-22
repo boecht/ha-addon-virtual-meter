@@ -14,7 +14,7 @@ from typing import Any
 
 from pydantic import BaseModel
 
-DEFAULTS_PATH = Path(__file__).resolve().parents[1] / "defaults.json"
+DEFAULTS_PATH = Path("/app/defaults.json")
 
 
 class Settings(BaseModel):
@@ -79,9 +79,12 @@ def _normalize_value(value: Any) -> Any:
 
 
 def _load_defaults(path: Path = DEFAULTS_PATH) -> dict[str, Any]:
-    if not path.exists():
-        return {}
-    return json.loads(path.read_text())
+    if path.exists():
+        return json.loads(path.read_text())
+    fallback = Path(__file__).resolve().parents[1] / "defaults.json"
+    if fallback.exists():
+        return json.loads(fallback.read_text())
+    return {}
 
 
 def load_settings(path: str = "/data/options.json") -> Settings:
