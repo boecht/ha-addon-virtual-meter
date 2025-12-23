@@ -268,8 +268,8 @@ def create_app(settings: Settings) -> web.Application:
         #     return MOCK_SHELLY_CONFIG.get("sys", {})
         if method == "WiFi.GetStatus":
             return (await _status_payload(request)).get("wifi", {})
-        if method == "WiFi.GetConfig":
-            return MOCK_SHELLY_CONFIG.get("wifi", {})
+        # if method == "WiFi.GetConfig":
+        #     return MOCK_SHELLY_CONFIG.get("wifi", {})
         # if method == "Ethernet.GetStatus":
         #     return (await _status_payload(request)).get("eth", {})
         # if method == "Ethernet.GetConfig":
@@ -286,12 +286,12 @@ def create_app(settings: Settings) -> web.Application:
         #     return (await _status_payload(request)).get("ws", {})
         # if method == "WS.GetConfig":
         #     return MOCK_SHELLY_CONFIG.get("ws", {})
-        if method == "Modbus.GetStatus":
-            return (await _status_payload(request)).get("modbus", {})
+        # if method == "Modbus.GetStatus":
+        #     return (await _status_payload(request)).get("modbus", {})
         # if method == "Modbus.GetConfig":
         #     return MOCK_SHELLY_CONFIG.get("modbus", {})
-        if method == "BTHome.GetStatus":
-            return (await _status_payload(request)).get("bthome", {})
+        # if method == "BTHome.GetStatus":
+        #     return (await _status_payload(request)).get("bthome", {})
         # if method == "BTHome.GetConfig":
         #     return MOCK_SHELLY_CONFIG.get("bthome", {})
         if method == "EMData.GetStatus":
