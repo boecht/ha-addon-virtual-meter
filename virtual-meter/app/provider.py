@@ -275,7 +275,67 @@ def create_app(settings: Settings) -> web.Application:
             return MOCK_SHELLY_CONFIG.get("bthome", {})
         raise KeyError(method)
 
+    async def _ws_rpc(request: web.Request) -> web.WebSocketResponse:
+        ws = web.WebSocketResponse(headers={"Server": "ShellyHTTP/1.0.0"})
+        await ws.prepare(request)
+        logger = logging.getLogger("virtual_meter.requests")
+        async for msg in ws:
+            if msg.type == web.WSMsgType.TEXT:
+                try:
+                    body = json.loads(msg.data)
+                except json.JSONDecodeError:
+                    await ws.send_json(
+                        {
+                            "jsonrpc": "2.0",
+                            "id": None,
+                            "src": DEVICE_ID,
+                            "dst": "client",
+                            "error": {"code": -32700, "message": "Parse error"},
+                        }
+                    )
+                    continue
+                method = body.get("method")
+                params = body.get("params") if isinstance(body.get("params"), dict) else None
+                request_id = body.get("id")
+                if not method:
+                    response = {
+                        "jsonrpc": "2.0",
+                        "id": request_id,
+                        "src": DEVICE_ID,
+                        "dst": "client",
+                        "error": {"code": -32600, "message": "Invalid Request"},
+                    }
+                else:
+                    try:
+                        result = await _rpc_dispatch(method, request, params)
+                        response = {
+                            "jsonrpc": "2.0",
+                            "id": request_id,
+                            "src": DEVICE_ID,
+                            "dst": "client",
+                            "result": result,
+                        }
+                    except KeyError:
+                        response = {
+                            "jsonrpc": "2.0",
+                            "id": request_id,
+                            "src": DEVICE_ID,
+                            "dst": "client",
+                            "error": {"code": -32601, "message": "Method not found"},
+                        }
+                if settings.debug_logging:
+                    logger.debug(
+                        json.dumps({"ws_in": msg.data, "ws_out": response}, sort_keys=True)
+                    )
+                await ws.send_json(response)
+            elif msg.type == web.WSMsgType.ERROR:
+                logger.warning("WebSocket error: %s", ws.exception())
+        return ws
+
     async def rpc_root(request: web.Request) -> web.StreamResponse:
+        ws_probe = web.WebSocketResponse()
+        if ws_probe.can_prepare(request):
+            return await _ws_rpc(request)
         if request.method == "GET":
             method = request.query.get("method")
             if not method:
