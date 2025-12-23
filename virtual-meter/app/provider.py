@@ -183,9 +183,11 @@ def create_app(settings: Settings) -> web.Application:
         return info
 
     def _emdata_status_payload() -> dict[str, Any]:
-        payload = dict(MOCK_EMDATA_STATUS)
-        payload.pop("errors", None)
-        return payload
+        return {
+            "id": 0,
+            "total_act": 0.0,
+            "total_act_ret": 0.0,
+        }
 
     def _jsonrpc_response(
         request_id: Any,
