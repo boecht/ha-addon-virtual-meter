@@ -276,7 +276,8 @@ def create_app(settings: Settings) -> web.Application:
         raise KeyError(method)
 
     async def _ws_rpc(request: web.Request) -> web.WebSocketResponse:
-        ws = web.WebSocketResponse(headers={"Server": "ShellyHTTP/1.0.0"})
+        ws = web.WebSocketResponse()
+        ws.headers["Server"] = "ShellyHTTP/1.0.0"
         await ws.prepare(request)
         logger = logging.getLogger("virtual_meter.requests")
         async for msg in ws:
