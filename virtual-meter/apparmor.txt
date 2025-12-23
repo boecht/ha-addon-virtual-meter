@@ -14,7 +14,8 @@ profile addon-virtual-meter flags=(attach_disconnected,mediate_deleted) {
 
   /usr/bin/python ix,
   /usr/bin/python3 ix,
-  /init ix,
+  /init rix,
+  /bin/sh ix,
 
   /etc/cont-init.d/** r,
   /etc/services.d/** r,
