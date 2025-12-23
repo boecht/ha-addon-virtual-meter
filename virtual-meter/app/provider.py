@@ -151,16 +151,7 @@ def create_app(settings: Settings) -> web.Application:
     async def _status_payload(request: web.Request) -> dict[str, Any]:
         values = await _compute_values()
         em_status = em_status_from_values(values)
-        sys_status = {
-            "mac": _device_mac_value(),
-            "time": datetime.now().strftime("%H:%M"),
-            "unixtime": int(datetime.now().timestamp()),
-        }
-        return {
-            "sys": sys_status,
-            "em:0": em_status,
-            "emdata:0": dict(MOCK_EMDATA_STATUS),
-        }
+        return {"em:0": em_status}
 
     async def shelly_get_status(request: web.Request) -> web.Response:
         return web.json_response(await _status_payload(request))
@@ -175,11 +166,14 @@ def create_app(settings: Settings) -> web.Application:
     def _device_info_payload() -> dict[str, Any]:
         info = dict(MOCK_DEVICE_INFO)
         mac = _device_mac_value()
-        info["mac"] = mac
-        info["id"] = device_id(mac)
-        info.pop("slot", None)
-        info.pop("profile", None)
-        return info
+        return {
+            "id": device_id(mac),
+            "mac": mac,
+            "model": info.get("model"),
+            "app": info.get("app"),
+            "fw_id": info.get("fw_id"),
+            "ver": info.get("ver"),
+        }
 
     def _emdata_status_payload() -> dict[str, Any]:
         payload = dict(MOCK_EMDATA_STATUS)
