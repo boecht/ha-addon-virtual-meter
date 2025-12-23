@@ -262,26 +262,26 @@ def create_app(settings: Settings) -> web.Application:
         #         "total": len(components),
         #         "components": components,
         #     }
-        if method == "System.GetStatus":
-            return (await _status_payload(request)).get("sys", {})
-        if method == "System.GetConfig":
-            return MOCK_SHELLY_CONFIG.get("sys", {})
+        # if method == "System.GetStatus":
+        #     return (await _status_payload(request)).get("sys", {})
+        # if method == "System.GetConfig":
+        #     return MOCK_SHELLY_CONFIG.get("sys", {})
         if method == "WiFi.GetStatus":
             return (await _status_payload(request)).get("wifi", {})
         if method == "WiFi.GetConfig":
             return MOCK_SHELLY_CONFIG.get("wifi", {})
-        if method == "Ethernet.GetStatus":
-            return (await _status_payload(request)).get("eth", {})
-        if method == "Ethernet.GetConfig":
-            return MOCK_SHELLY_CONFIG.get("eth", {})
-        if method == "Cloud.GetStatus":
-            return (await _status_payload(request)).get("cloud", {})
-        if method == "Cloud.GetConfig":
-            return MOCK_SHELLY_CONFIG.get("cloud", {})
-        if method == "MQTT.GetStatus":
-            return (await _status_payload(request)).get("mqtt", {})
-        if method == "MQTT.GetConfig":
-            return MOCK_SHELLY_CONFIG.get("mqtt", {})
+        # if method == "Ethernet.GetStatus":
+        #     return (await _status_payload(request)).get("eth", {})
+        # if method == "Ethernet.GetConfig":
+        #     return MOCK_SHELLY_CONFIG.get("eth", {})
+        # if method == "Cloud.GetStatus":
+        #     return (await _status_payload(request)).get("cloud", {})
+        # if method == "Cloud.GetConfig":
+        #     return MOCK_SHELLY_CONFIG.get("cloud", {})
+        # if method == "MQTT.GetStatus":
+        #     return (await _status_payload(request)).get("mqtt", {})
+        # if method == "MQTT.GetConfig":
+        #     return MOCK_SHELLY_CONFIG.get("mqtt", {})
         if method == "WS.GetStatus":
             return (await _status_payload(request)).get("ws", {})
         if method == "WS.GetConfig":
@@ -345,48 +345,6 @@ def create_app(settings: Settings) -> web.Application:
                         json.dumps({"ws_in": msg.data, "ws_out": response}, sort_keys=True)
                     )
                 await ws.send_json(response)
-                if method == "EM.GetStatus" and "result" in response:
-                    status_payload = await _status_payload(request)
-                    notify = {
-                        "src": _device_id_value(),
-                        "method": "NotifyStatus",
-                        "params": {
-                            "ts": time.time(),
-                            "sys": status_payload.get("sys", {}),
-                            "em:0": response["result"],
-                        },
-                    }
-                    if client_src:
-                        notify["dst"] = client_src
-                    if settings.debug_logging:
-                        logger.debug(
-                            json.dumps(
-                                {"ws_in": msg.data, "ws_notify": notify}, sort_keys=True
-                            )
-                        )
-                    await ws.send_json(notify)
-                if method == "EMData.GetStatus" and "result" in response:
-                    notify = {
-                        "src": _device_id_value(),
-                        "method": "NotifyStatus",
-                        "params": {
-                            "ts": time.time(),
-                            "emdata:0": response["result"],
-                        },
-                    }
-                    if client_src:
-                        notify["dst"] = client_src
-                    if settings.debug_logging:
-                        logger.debug(
-                            json.dumps(
-                                {
-                                    "ws_in": msg.data,
-                                    "ws_notify": notify,
-                                },
-                                sort_keys=True,
-                            )
-                        )
-                    await ws.send_json(notify)
             elif msg.type == web.WSMsgType.ERROR:
                 logger.warning("WebSocket error: %s", ws.exception())
         return ws
