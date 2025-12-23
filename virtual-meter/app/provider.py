@@ -215,7 +215,6 @@ def create_app(settings: Settings) -> web.Application:
                 "name": "Virtual Pro3EM",
                 "ct_type": "120A",
                 "phase_selector": "all",
-                "reverse": {"a": False, "b": False, "c": False},
             }
         if method == "EM.GetStatus":
             return em_status_from_values(await _compute_values())
