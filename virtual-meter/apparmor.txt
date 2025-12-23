@@ -14,6 +14,11 @@ profile addon-virtual-meter flags=(attach_disconnected,mediate_deleted) {
 
   /usr/bin/python ix,
   /usr/bin/python3 ix,
+  /init ix,
+
+  /etc/cont-init.d/** r,
+  /etc/services.d/** r,
+  /etc/s6-overlay/** r,
 
   /app/** r,
   /app/**/ r,
@@ -21,6 +26,8 @@ profile addon-virtual-meter flags=(attach_disconnected,mediate_deleted) {
   /data/** rw,
   /tmp/** rw,
   /var/tmp/** rw,
+  /run/** rw,
+  /var/run/** rw,
 
   /etc/hosts r,
   /etc/nsswitch.conf r,
