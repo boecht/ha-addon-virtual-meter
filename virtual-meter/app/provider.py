@@ -454,6 +454,6 @@ def create_app(settings: Settings) -> web.Application:
     app.router.add_get("/rpc", rpc_root)
     app.router.add_post("/rpc", rpc_root)
     # app.router.add_get("/rpc/{method}", rpc_method)
-    # app.router.add_get("/shelly", shelly_device_info)
+    app.router.add_get("/shelly", shelly_device_info)
 
     return app
