@@ -50,12 +50,19 @@ def transform(
     source_json: dict[str, Any],
     json_paths: dict[str, str | None],
     overrides: dict[str, float | None],
+    offsets: dict[str, float | None],
 ) -> dict[str, float]:
-    """Merge source values with overrides."""
+    """Merge source values with overrides and offsets."""
     working: dict[str, float | None] = dict.fromkeys(json_paths.keys(), None)
 
     _apply_json_values(working, source_json, json_paths)
     _apply_value_overrides(working, overrides)
+    for key, offset in offsets.items():
+        if offset is None:
+            continue
+        if working.get(key) is None:
+            continue
+        working[key] = (working[key] or 0.0) + offset
     for key in working:
         if working[key] is None:
             working[key] = 0.0

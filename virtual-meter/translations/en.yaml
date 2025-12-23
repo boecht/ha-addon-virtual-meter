@@ -23,18 +23,27 @@ configuration:
   l1_act_power_value:
     name: L1 Active Power (W)
     description: Optional numeric value for L1 active power. JSON values override numeric values.
+  l1_power_offset:
+    name: L1 Power Offset (W)
+    description: Optional offset to apply to L1 active power value.
   l2_act_power_json:
     name: L2 Active Power (JSON Path)
     description: Path to L2 active power in provider endpoint.
   l2_act_power_value:
     name: L2 Active Power (W)
     description: Optional numeric value for L2 active power. Set to 0.0 if single phase.
+  l2_power_offset:
+    name: L2 Power Offset (W)
+    description: Optional offset to apply to L2 active power value.
   l3_act_power_json:
     name: L3 Active Power (JSON Path)
     description: Path to L3 active power in provider endpoint.
   l3_act_power_value:
     name: L3 Active Power (W)
     description: Optional numeric value for L3 active power. Set to 0.0 if single phase.
+  l3_power_offset:
+    name: L3 Power Offset (W)
+    description: Optional offset to apply to L3 active power value.
   debug_logging:
     name: Debug Logging
     description: Enable verbose debug logs.

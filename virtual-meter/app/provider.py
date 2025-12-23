@@ -38,6 +38,14 @@ def _overrides(settings: Settings) -> dict[str, float | None]:
     }
 
 
+def _offsets(settings: Settings) -> dict[str, float | None]:
+    return {
+        "l1_act_power": settings.l1_power_offset,
+        "l2_act_power": settings.l2_power_offset,
+        "l3_act_power": settings.l3_power_offset,
+    }
+
+
 def create_app(settings: Settings) -> web.Application:
     """Create aiohttp app and register RPC routes for real mode."""
     app = web.Application()
@@ -98,6 +106,7 @@ def create_app(settings: Settings) -> web.Application:
             source_json,
             _json_paths(settings),
             _overrides(settings),
+            _offsets(settings),
         )
         if values:
             cache = values

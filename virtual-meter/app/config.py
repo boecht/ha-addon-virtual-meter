@@ -20,10 +20,13 @@ class Settings(BaseModel):
     http_port: int = 80
     l1_act_power_json: str | None = None
     l1_act_power_value: float | None = None
+    l1_power_offset: float | None = None
     l2_act_power_json: str | None = None
     l2_act_power_value: float | None = None
+    l2_power_offset: float | None = None
     l3_act_power_json: str | None = None
     l3_act_power_value: float | None = None
+    l3_power_offset: float | None = None
     debug_logging: bool = False
 
 
