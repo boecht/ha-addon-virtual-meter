@@ -12,4 +12,4 @@ Home Assistant add-on repository for a virtual Shelly Pro 3EM (Gen2) emulator.
 - `virtual-meter/` - Add-on folder
 
 ## Status
-Active development: provider polling and mapping are implemented with configurable inputs and defaults.
+Active development: provider polling and mapping are implemented with configurable inputs.

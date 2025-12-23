@@ -17,138 +17,24 @@ configuration:
   poll_interval_ms:
     name: Polling Interval (ms)
     description: Endpoint polling interval for provider and consumer endpoint in milliseconds (250-5000).
-  l1_current_json:
-    name: L1 Current (JSON Path)
-    description: Path to L1 current in provider endpoint, JSON values override numeric values.
-  l1_current_value:
-    name: L1 Current (A)
-    description: Optional numeric value for L1 current.
-  l1_voltage_json:
-    name: L1 Voltage (JSON Path)
-    description: JSON path to L1 voltage in provider endpoint, JSON values override numeric values.
-  l1_voltage_value:
-    name: L1 Voltage (V)
-    description: Optional numeric value for L1 voltage.
   l1_act_power_json:
     name: L1 Active Power (JSON Path)
-    description: JSON path to L1 active power in provider endpoint, JSON values override numeric values.
+    description: JSON path to L1 active power in provider endpoint. e.g. "StatusSNS.tasmota.wirkleistung_l1"
   l1_act_power_value:
     name: L1 Active Power (W)
-    description: Optional numeric value for L1 active power.
-  l1_aprt_power_json:
-    name: L1 Apparent Power (JSON Path)
-    description: JSON path to L1 apparent power in provider endpoint, JSON values override numeric values.
-  l1_aprt_power_value:
-    name: L1 Apparent Power (VA)
-    description: Optional numeric value for L1 apparent power.
-  l1_pf_json:
-    name: L1 Power Factor (JSON Path)
-    description: JSON path to L1 power factor in provider endpoint, JSON values override numeric values.
-  l1_pf_value:
-    name: L1 Power Factor
-    description: Optional numeric value for L1 power factor.
-  l1_freq_json:
-    name: L1 Frequency (JSON Path)
-    description: JSON path to L1 frequency in provider endpoint, JSON values override numeric values.
-  l1_freq_value:
-    name: L1 Frequency (Hz)
-    description: Optional numeric value for L1 frequency.
-  l2_current_json:
-    name: L2 Current (JSON Path)
-    description: Path to L2 current in provider endpoint, JSON values override numeric values.
-  l2_current_value:
-    name: L2 Current (A)
-    description: Optional numeric value for L2 current. Set to 0.0 if single phase.
-  l2_voltage_json:
-    name: L2 Voltage (JSON Path)
-    description: Path to L2 voltage in provider endpoint, JSON values override numeric values.
-  l2_voltage_value:
-    name: L2 Voltage (V)
-    description: Optional numeric value for L2 voltage.
+    description: Optional numeric value for L1 active power. JSON values override numeric values.
   l2_act_power_json:
     name: L2 Active Power (JSON Path)
-    description: Path to L2 active power in provider endpoint, JSON values override numeric values.
+    description: Path to L2 active power in provider endpoint.
   l2_act_power_value:
     name: L2 Active Power (W)
     description: Optional numeric value for L2 active power. Set to 0.0 if single phase.
-  l2_aprt_power_json:
-    name: L2 Apparent Power (JSON Path)
-    description: Path to L2 apparent power in provider endpoint, JSON values override numeric values.
-  l2_aprt_power_value:
-    name: L2 Apparent Power (VA)
-    description: Optional numeric value for L2 apparent power.
-  l2_pf_json:
-    name: L2 Power Factor (JSON Path)
-    description: Path to L2 power factor in provider endpoint, JSON values override numeric values.
-  l2_pf_value:
-    name: L2 Power Factor
-    description: Optional numeric value for L2 power factor.
-  l2_freq_json:
-    name: L2 Frequency (JSON Path)
-    description: Path to L2 frequency in provider endpoint, JSON values override numeric values.
-  l2_freq_value:
-    name: L2 Frequency (Hz)
-    description: Optional numeric value for L2 frequency.
-  l3_current_json:
-    name: L3 Current (JSON Path)
-    description: Path to L3 current in provider endpoint, JSON values override numeric values.
-  l3_current_value:
-    name: L3 Current (A)
-    description: Optional numeric value for L3 current. Set to 0.0 if single phase.
-  l3_voltage_json:
-    name: L3 Voltage (JSON Path)
-    description: Path to L3 voltage in provider endpoint, JSON values override numeric values.
-  l3_voltage_value:
-    name: L3 Voltage (V)
-    description: Optional numeric value for L3 voltage.
   l3_act_power_json:
     name: L3 Active Power (JSON Path)
-    description: Path to L3 active power in provider endpoint, JSON values override numeric values.
+    description: Path to L3 active power in provider endpoint.
   l3_act_power_value:
     name: L3 Active Power (W)
     description: Optional numeric value for L3 active power. Set to 0.0 if single phase.
-  l3_aprt_power_json:
-    name: L3 Apparent Power (JSON Path)
-    description: Path to L3 apparent power in provider endpoint, JSON values override numeric values.
-  l3_aprt_power_value:
-    name: L3 Apparent Power (VA)
-    description: Optional numeric value for L3 apparent power.
-  l3_pf_json:
-    name: L3 Power Factor (JSON Path)
-    description: Path to L3 power factor in provider endpoint, JSON values override numeric values.
-  l3_pf_value:
-    name: L3 Power Factor
-    description: Optional numeric value for L3 power factor.
-  l3_freq_json:
-    name: L3 Frequency (JSON Path)
-    description: Path to L3 frequency in provider endpoint, JSON values override numeric values.
-  l3_freq_value:
-    name: L3 Frequency (Hz)
-    description: Optional numeric value for L3 frequency.
-  n_current_json:
-    name: N Current (JSON Path)
-    description: Path to N current in provider endpoint, JSON values override numeric values.
-  n_current_value:
-    name: N Current (A)
-    description: Optional numeric value for N current.
-  total_current_json:
-    name: Total Current (JSON Path)
-    description: Path to total current in provider endpoint, JSON values override numeric values.
-  total_current_value:
-    name: Total Current (A)
-    description: Optional numeric value for total current.
-  total_act_power_json:
-    name: Total Active Power (JSON Path)
-    description: Path to total active power in provider endpoint, JSON values override numeric values.
-  total_act_power_value:
-    name: Total Active Power (W)
-    description: Optional numeric value for total active power.
-  total_aprt_power_json:
-    name: Total Apparent Power (JSON Path)
-    description: Path to total apparent power in provider endpoint, JSON values override numeric values.
-  total_aprt_power_value:
-    name: Total Apparent Power (VA)
-    description: Optional numeric value for total apparent power.
   debug_logging:
     name: Debug Logging
     description: Enable verbose debug logs.

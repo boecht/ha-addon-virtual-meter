@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from datetime import datetime
 import json
-import time
 import logging
 from typing import Any
 from contextlib import suppress
@@ -16,67 +15,26 @@ from .consumer import HttpConsumer
 from .shelly import (
     MOCK_DEVICE_INFO,
     MOCK_EMDATA_STATUS,
-    MOCK_SHELLY_CONFIG,
-    MOCK_SHELLY_STATUS,
     device_id,
     device_mac,
     em_status_from_values,
-    local_ip,
 )
 from .transformer import transform
 
 
 def _json_paths(settings: Settings) -> dict[str, str | None]:
     return {
-        "l1_current": settings.l1_current_json,
-        "l1_voltage": settings.l1_voltage_json,
         "l1_act_power": settings.l1_act_power_json,
-        "l1_aprt_power": settings.l1_aprt_power_json,
-        "l1_pf": settings.l1_pf_json,
-        "l1_freq": settings.l1_freq_json,
-        "l2_current": settings.l2_current_json,
-        "l2_voltage": settings.l2_voltage_json,
         "l2_act_power": settings.l2_act_power_json,
-        "l2_aprt_power": settings.l2_aprt_power_json,
-        "l2_pf": settings.l2_pf_json,
-        "l2_freq": settings.l2_freq_json,
-        "l3_current": settings.l3_current_json,
-        "l3_voltage": settings.l3_voltage_json,
         "l3_act_power": settings.l3_act_power_json,
-        "l3_aprt_power": settings.l3_aprt_power_json,
-        "l3_pf": settings.l3_pf_json,
-        "l3_freq": settings.l3_freq_json,
-        "n_current": settings.n_current_json,
-        "total_current": settings.total_current_json,
-        "total_act_power": settings.total_act_power_json,
-        "total_aprt_power": settings.total_aprt_power_json,
     }
 
 
 def _overrides(settings: Settings) -> dict[str, float | None]:
     return {
-        "l1_current": settings.l1_current_value,
-        "l1_voltage": settings.l1_voltage_value,
         "l1_act_power": settings.l1_act_power_value,
-        "l1_aprt_power": settings.l1_aprt_power_value,
-        "l1_pf": settings.l1_pf_value,
-        "l1_freq": settings.l1_freq_value,
-        "l2_current": settings.l2_current_value,
-        "l2_voltage": settings.l2_voltage_value,
         "l2_act_power": settings.l2_act_power_value,
-        "l2_aprt_power": settings.l2_aprt_power_value,
-        "l2_pf": settings.l2_pf_value,
-        "l2_freq": settings.l2_freq_value,
-        "l3_current": settings.l3_current_value,
-        "l3_voltage": settings.l3_voltage_value,
         "l3_act_power": settings.l3_act_power_value,
-        "l3_aprt_power": settings.l3_aprt_power_value,
-        "l3_pf": settings.l3_pf_value,
-        "l3_freq": settings.l3_freq_value,
-        "n_current": settings.n_current_value,
-        "total_current": settings.total_current_value,
-        "total_act_power": settings.total_act_power_value,
-        "total_aprt_power": settings.total_aprt_power_value,
     }
 
 
@@ -137,8 +95,6 @@ def create_app(settings: Settings) -> web.Application:
             source_json,
             _json_paths(settings),
             _overrides(settings),
-            settings.defaults,
-            derive=True,
         )
         if values:
             cache = values
@@ -162,16 +118,6 @@ def create_app(settings: Settings) -> web.Application:
             "emdata:0": dict(MOCK_EMDATA_STATUS),
         }
 
-    async def shelly_get_status(request: web.Request) -> web.Response:
-        return web.json_response(await _status_payload(request))
-
-    async def em_get_status(request: web.Request) -> web.Response:
-        values = await _compute_values()
-        return web.json_response(em_status_from_values(values))
-
-    async def shelly_device_info(request: web.Request) -> web.Response:
-        return web.json_response(_device_info_payload())
-
     def _device_info_payload() -> dict[str, Any]:
         info = dict(MOCK_DEVICE_INFO)
         mac = _device_mac_value()
@@ -179,7 +125,6 @@ def create_app(settings: Settings) -> web.Application:
         info["id"] = device_id(mac)
         info.pop("slot", None)
         info.pop("profile", None)
-        #info.pop("gen", None)
         return info
 
     def _emdata_status_payload() -> dict[str, Any]:
@@ -314,16 +259,6 @@ def create_app(settings: Settings) -> web.Application:
                 request_id, None, {"code": -32601, "message": "Method not found"}
             )
 
-    async def rpc_method(request: web.Request) -> web.Response:
-        method = request.match_info.get("method")
-        try:
-            result = await _rpc_dispatch(method, request, None)
-            return web.json_response({"result": result})
-        except KeyError:
-            return web.json_response(
-                {"error": {"code": -32601, "message": "Method not found"}}
-            )
-
     @web.middleware
     async def log_requests(request: web.Request, handler):
         rpc_payload: dict[str, Any] | None = None
@@ -370,11 +305,7 @@ def create_app(settings: Settings) -> web.Application:
 
     app.middlewares.append(log_requests)
 
-    # app.router.add_get("/rpc/Shelly.GetStatus", shelly_get_status)
-    # app.router.add_get("/rpc/EM.GetStatus", em_get_status)
     app.router.add_get("/rpc", rpc_root)
     app.router.add_post("/rpc", rpc_root)
-    # app.router.add_get("/rpc/{method}", rpc_method)
-    # app.router.add_get("/shelly", shelly_device_info)
 
     return app

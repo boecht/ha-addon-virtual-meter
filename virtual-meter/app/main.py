@@ -1,4 +1,4 @@
-"""Add-on entry point (stub)."""
+"""Add-on entry point."""
 
 from __future__ import annotations
 

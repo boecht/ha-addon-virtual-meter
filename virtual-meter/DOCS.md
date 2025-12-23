@@ -7,8 +7,14 @@ This add-on emulates a Shelly Pro 3EM (Gen2) device so a Hoymiles battery system
 ## Configuration
 
 - `http_port` (int): Port to bind the emulated HTTP API (default 80).
+- `device_mac` (string, optional): Shelly-style MAC (no colons) for device id.
 - `provider_endpoint` (string): HTTP endpoint to poll for source data.
+- `provider_username` (string, optional): Username for provider endpoint authentication.
+- `provider_password` (string, optional): Password for provider endpoint authentication.
 - `poll_interval_ms` (int): Polling interval in milliseconds.
+- `l1_act_power_json` / `l1_act_power_value`: L1 active power mapping/override.
+- `l2_act_power_json` / `l2_act_power_value`: L2 active power mapping/override.
+- `l3_act_power_json` / `l3_act_power_value`: L3 active power mapping/override.
 - `debug_logging` (bool): Enable verbose debug logs.
 
 ## Networking
@@ -24,24 +30,7 @@ This add-on emulates a Shelly Pro 3EM (Gen2) device so a Hoymiles battery system
 
 ## Supported RPC paths
 
-- `/rpc/Shelly.GetStatus`
-- `/rpc/EM.GetStatus?id=0`
-- `/rpc/<method>` (result-only responses for supported Shelly Gen2 methods)
-- `/rpc` (JSON-RPC 2.0 requests)
-- `/shelly` (device info)
-
-## Value resolution order
-
-When building output values, the add-on uses this priority order:
-
-1. JSON path values (`*_json`)
-2. Numeric overrides (`*_value`)
-3. Derived values (computed from available inputs)
-4. Defaults from `defaults.json`
-
-## Defaults
-
-`defaults.json` provides fallback values for all required output fields.
+- `/rpc` (JSON-RPC 2.0 requests + WebSocket upgrade)
 
 ## Notes
 
