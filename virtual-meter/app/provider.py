@@ -179,8 +179,8 @@ def create_app(settings: Settings) -> web.Application:
         info["id"] = device_id(mac)
         info.pop("slot", None)
         info.pop("profile", None)
-        #info.pop("auth_domain", None)
-        info.pop("auth_en", None)
+        info.pop("auth_domain", None)
+        #info.pop("auth_en", None)
         info.pop("gen", None)
         return info
 
