@@ -273,18 +273,18 @@ def create_app(settings: Settings) -> web.Application:
             return (await _status_payload(request)).get("eth", {})
         if method == "Ethernet.GetConfig":
             return MOCK_SHELLY_CONFIG.get("eth", {})
-        if method == "Cloud.GetStatus":
-            return (await _status_payload(request)).get("cloud", {})
-        if method == "Cloud.GetConfig":
-            return MOCK_SHELLY_CONFIG.get("cloud", {})
-        if method == "MQTT.GetStatus":
-            return (await _status_payload(request)).get("mqtt", {})
-        if method == "MQTT.GetConfig":
-            return MOCK_SHELLY_CONFIG.get("mqtt", {})
-        if method == "WS.GetStatus":
-            return (await _status_payload(request)).get("ws", {})
-        if method == "WS.GetConfig":
-            return MOCK_SHELLY_CONFIG.get("ws", {})
+        # if method == "Cloud.GetStatus":
+        #     return (await _status_payload(request)).get("cloud", {})
+        # if method == "Cloud.GetConfig":
+        #     return MOCK_SHELLY_CONFIG.get("cloud", {})
+        # if method == "MQTT.GetStatus":
+        #     return (await _status_payload(request)).get("mqtt", {})
+        # if method == "MQTT.GetConfig":
+        #     return MOCK_SHELLY_CONFIG.get("mqtt", {})
+        # if method == "WS.GetStatus":
+        #     return (await _status_payload(request)).get("ws", {})
+        # if method == "WS.GetConfig":
+        #     return MOCK_SHELLY_CONFIG.get("ws", {})
         if method == "Modbus.GetStatus":
             return (await _status_payload(request)).get("modbus", {})
         # if method == "Modbus.GetConfig":
