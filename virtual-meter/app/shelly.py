@@ -7,7 +7,7 @@ from typing import Any
 
 from aiohttp import web
 
-DEVICE_ID = "shellypro3em-virtual"
+DEVICE_PREFIX = "shellypro3em-"
 
 MOCK_EM_STATUS = {
     "id": 0,
@@ -55,7 +55,7 @@ MOCK_EMDATA_STATUS = {
 }
 
 MOCK_DEVICE_INFO = {
-    "id": DEVICE_ID,
+    "id": f"{DEVICE_PREFIX}virtual",
     "mac": "000000000000",
     "slot": 1,
     "model": "SPEM-003CEBEU",
@@ -182,6 +182,12 @@ def device_mac() -> str:
     """Return a deterministic MAC-style identifier."""
     mac_int = uuid.getnode()
     return f"{mac_int:012X}"
+
+
+def device_id(mac: str | None = None) -> str:
+    """Return a Shelly-style device id for the given MAC."""
+    mac_value = mac or device_mac()
+    return f"{DEVICE_PREFIX}{mac_value.lower()}"
 
 
 def local_ip(request: web.Request) -> str | None:

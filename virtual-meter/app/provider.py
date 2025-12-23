@@ -13,10 +13,10 @@ from aiohttp import web
 from .config import Settings
 from .consumer import HttpConsumer
 from .shelly import (
-    DEVICE_ID,
     MOCK_DEVICE_INFO,
     MOCK_SHELLY_CONFIG,
     MOCK_SHELLY_STATUS,
+    device_id,
     device_mac,
     em_status_from_values,
     local_ip,
@@ -159,13 +159,13 @@ def create_app(settings: Settings) -> web.Application:
         return web.json_response(em_status_from_values(values))
 
     async def shelly_device_info(request: web.Request) -> web.Response:
-        info = dict(MOCK_DEVICE_INFO)
-        info["mac"] = device_mac()
-        return web.json_response(info)
+        return web.json_response(_device_info_payload())
 
     def _device_info_payload() -> dict[str, Any]:
         info = dict(MOCK_DEVICE_INFO)
-        info["mac"] = device_mac()
+        mac = device_mac()
+        info["mac"] = mac
+        info["id"] = device_id(mac)
         return info
 
     def _jsonrpc_response(
@@ -176,7 +176,7 @@ def create_app(settings: Settings) -> web.Application:
         response: dict[str, Any] = {
             "jsonrpc": "2.0",
             "id": request_id if request_id is not None else 1,
-            "src": DEVICE_ID,
+            "src": device_id(),
             "dst": "client",
         }
         if error is not None:
@@ -288,7 +288,7 @@ def create_app(settings: Settings) -> web.Application:
                     await ws.send_json(
                         {
                             "id": None,
-                            "src": DEVICE_ID,
+                            "src": device_id(),
                             "error": {"code": -32700, "message": "Parse error"},
                         }
                     )
@@ -299,7 +299,7 @@ def create_app(settings: Settings) -> web.Application:
                 if not method:
                     response = {
                         "id": request_id,
-                        "src": DEVICE_ID,
+                        "src": device_id(),
                         "error": {"code": -32600, "message": "Invalid Request"},
                     }
                 else:
@@ -307,13 +307,13 @@ def create_app(settings: Settings) -> web.Application:
                         result = await _rpc_dispatch(method, request, params)
                         response = {
                             "id": request_id,
-                            "src": DEVICE_ID,
+                            "src": device_id(),
                             "result": result,
                         }
                     except KeyError:
                         response = {
                             "id": request_id,
-                            "src": DEVICE_ID,
+                            "src": device_id(),
                             "error": {"code": -32601, "message": "Method not found"},
                         }
                 if settings.debug_logging:
