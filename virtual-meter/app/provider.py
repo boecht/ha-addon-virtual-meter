@@ -79,6 +79,9 @@ def create_app(settings: Settings) -> web.Application:
     app.on_cleanup.append(_cleanup)
 
     async def _on_prepare(request: web.Request, response: web.StreamResponse) -> None:
+        from asyncio import sleep
+
+        await sleep(0)
         if "Server" not in response.headers:
             response.headers["Server"] = "ShellyHTTP/1.0.0"
 
@@ -104,7 +107,7 @@ def create_app(settings: Settings) -> web.Application:
         )
         return cache or {}
 
-    async def _status_payload(request: web.Request) -> dict[str, Any]:
+    async def _status_payload() -> dict[str, Any]:
         values = await _compute_values()
         em_status = em_status_from_values(values)
         sys_status = {
@@ -146,11 +149,9 @@ def create_app(settings: Settings) -> web.Application:
             response["result"] = result or {}
         return web.json_response(response)
 
-    async def _rpc_dispatch(
-        method: str, request: web.Request, params: dict[str, Any] | None
-    ) -> dict[str, Any]:
+    async def _rpc_dispatch(method: str) -> dict[str, Any]:
         if method == "Shelly.GetStatus":
-            return await _status_payload(request)
+            return await _status_payload()
         if method == "Shelly.GetDeviceInfo":
             return _device_info_payload()
         if method == "EM.GetConfig":
@@ -183,8 +184,6 @@ def create_app(settings: Settings) -> web.Application:
                     )
                     continue
                 method = body.get("method")
-                client_src = body.get("src")
-                params = body.get("params") if isinstance(body.get("params"), dict) else None
                 request_id = body.get("id")
                 if not method:
                     response = {
@@ -194,7 +193,7 @@ def create_app(settings: Settings) -> web.Application:
                     }
                 else:
                     try:
-                        result = await _rpc_dispatch(method, request, params)
+                        result = await _rpc_dispatch(method)
                         response = {
                             "id": request_id,
                             "src": _device_id_value(),
@@ -229,10 +228,8 @@ def create_app(settings: Settings) -> web.Application:
                 await response.prepare(request)
                 await response.write_eof()
                 return response
-            params = dict(request.query)
-            params.pop("method", None)
             try:
-                result = await _rpc_dispatch(method, request, params)
+                result = await _rpc_dispatch(method)
                 return _jsonrpc_response(None, result)
             except KeyError:
                 return _jsonrpc_response(
@@ -241,7 +238,6 @@ def create_app(settings: Settings) -> web.Application:
 
         body = await request.json()
         method = body.get("method")
-        params = body.get("params") if isinstance(body.get("params"), dict) else None
         request_id = body.get("id")
         if not method:
             response = web.StreamResponse(
@@ -252,7 +248,7 @@ def create_app(settings: Settings) -> web.Application:
             await response.write_eof()
             return response
         try:
-            result = await _rpc_dispatch(method, request, params)
+            result = await _rpc_dispatch(method)
             return _jsonrpc_response(request_id, result)
         except KeyError:
             return _jsonrpc_response(

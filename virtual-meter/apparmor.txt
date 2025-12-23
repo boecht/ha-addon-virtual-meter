@@ -1,0 +1,34 @@
+#include <tunables/global>
+
+profile addon-virtual-meter flags=(attach_disconnected,mediate_deleted) {
+  #include <abstractions/base>
+  #include <abstractions/nameservice>
+  #include <abstractions/openssl>
+  #include <abstractions/python>
+
+  capability net_bind_service,
+
+  network inet,
+  network inet6,
+  network unix,
+
+  /usr/bin/python ix,
+  /usr/bin/python3 ix,
+
+  /app/** r,
+  /app/**/ r,
+
+  /data/** rw,
+  /tmp/** rw,
+  /var/tmp/** rw,
+
+  /etc/hosts r,
+  /etc/nsswitch.conf r,
+  /etc/resolv.conf r,
+  /etc/ssl/** r,
+
+  /lib/** mr,
+  /usr/lib/** mr,
+  /bin/** mr,
+  /usr/bin/** mr,
+}

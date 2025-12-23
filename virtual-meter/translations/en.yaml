@@ -19,7 +19,7 @@ configuration:
     description: Endpoint polling interval for provider and consumer endpoint in milliseconds (250-5000).
   l1_act_power_json:
     name: L1 Active Power (JSON Path)
-    description: JSON path to L1 active power in provider endpoint. e.g. "StatusSNS.tasmota.wirkleistung_l1"
+    description: JSON path to L1 active power in provider endpoint. e.g. "StatusSNS.tasmota.act_power_l1"
   l1_act_power_value:
     name: L1 Active Power (W)
     description: Optional numeric value for L1 active power. JSON values override numeric values.

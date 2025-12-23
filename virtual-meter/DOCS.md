@@ -2,7 +2,7 @@
 
 ## Overview
 
-This add-on emulates a Shelly Pro 3EM (Gen2) device so a Hoymiles battery system can read grid data from an HTTP source.
+Emulates a Shelly Pro 3EM (Gen2) endpoint so a Hoymiles battery can read grid data sourced from another HTTP API.
 
 ## Configuration
 
@@ -19,19 +19,18 @@ This add-on emulates a Shelly Pro 3EM (Gen2) device so a Hoymiles battery system
 
 ## Networking
 
-- `host_network: true` is required. The emulator binds directly to port 80.
+- `host_network: true` is required (binds directly to `http_port`).
 
-## Capture workflow (v0.0.1)
+## Supported RPC
 
-1. Install the add-on and configure your provider endpoint.
-2. Start the add-on and open its Logs tab in Home Assistant.
-3. Point the Hoymiles app to the add-on IP (port 80).
-4. Observe and copy the JSON log lines to build the protocol capture logs.
-
-## Supported RPC paths
-
-- `/rpc` (JSON-RPC 2.0 requests + WebSocket upgrade)
+- `/rpc` (JSON-RPC 2.0 + WebSocket upgrade)
+- Methods used by the battery:
+  - `Shelly.GetDeviceInfo`
+  - `Shelly.GetStatus`
+  - `EM.GetConfig`
+  - `EM.GetStatus`
+  - `EMData.GetStatus`
 
 ## Notes
 
-- v0.0.1 focuses on provider polling and mapping for protocol capture.
+- The implementation is intentionally minimal and only returns fields observed during testing.
