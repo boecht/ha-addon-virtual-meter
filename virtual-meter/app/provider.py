@@ -183,11 +183,7 @@ def create_app(settings: Settings) -> web.Application:
         return info
 
     def _emdata_status_payload() -> dict[str, Any]:
-        return {
-            "id": 0,
-            "total_act": 0.0,
-            "total_act_ret": 0.0,
-        }
+        return {"id": 0}
 
     def _jsonrpc_response(
         request_id: Any,
