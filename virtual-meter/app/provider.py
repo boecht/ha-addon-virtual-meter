@@ -211,54 +211,56 @@ def create_app(settings: Settings) -> web.Application:
             return em_status_from_values(await _compute_values())
         if method == "Shelly.GetDeviceInfo":
             return _device_info_payload()
-        if method == "Shelly.GetConfig":
-            return MOCK_SHELLY_CONFIG
-        if method == "Shelly.ListMethods":
-            return {
-                "methods": sorted(
-                    [
-                        "Shelly.GetStatus",
-                        "EM.GetStatus",
-                        "EMData.GetStatus",
-                        "Shelly.GetDeviceInfo",
-                        "Shelly.GetConfig",
-                        "Shelly.GetComponents",
-                        "System.GetStatus",
-                        "System.GetConfig",
-                        "WiFi.GetStatus",
-                        "WiFi.GetConfig",
-                        "Ethernet.GetStatus",
-                        "Ethernet.GetConfig",
-                        "Cloud.GetStatus",
-                        "Cloud.GetConfig",
-                        "MQTT.GetStatus",
-                        "MQTT.GetConfig",
-                        "WS.GetStatus",
-                        "WS.GetConfig",
-                        "Modbus.GetStatus",
-                        "Modbus.GetConfig",
-                        "BTHome.GetStatus",
-                        "BTHome.GetConfig",
-                    ]
-                )
-            }
-        if method == "Shelly.GetComponents":
-            status = await _status_payload(request)
-            components = []
-            for key in sorted(set(status) | set(MOCK_SHELLY_CONFIG)):
-                components.append(
-                    {
-                        "key": key,
-                        "status": status.get(key),
-                        "config": MOCK_SHELLY_CONFIG.get(key),
-                    }
-                )
-            return {
-                "cfg_rev": 1,
-                "offset": 0,
-                "total": len(components),
-                "components": components,
-            }
+        if method == "EM.GetConfig":
+            return MOCK_SHELLY_CONFIG.get("em:0", {})
+        # if method == "Shelly.GetConfig":
+        #     return MOCK_SHELLY_CONFIG
+        # if method == "Shelly.ListMethods":
+        #     return {
+        #         "methods": sorted(
+        #             [
+        #                 "Shelly.GetStatus",
+        #                 "EM.GetStatus",
+        #                 "EMData.GetStatus",
+        #                 "Shelly.GetDeviceInfo",
+        #                 "Shelly.GetConfig",
+        #                 "Shelly.GetComponents",
+        #                 "System.GetStatus",
+        #                 "System.GetConfig",
+        #                 "WiFi.GetStatus",
+        #                 "WiFi.GetConfig",
+        #                 "Ethernet.GetStatus",
+        #                 "Ethernet.GetConfig",
+        #                 "Cloud.GetStatus",
+        #                 "Cloud.GetConfig",
+        #                 "MQTT.GetStatus",
+        #                 "MQTT.GetConfig",
+        #                 "WS.GetStatus",
+        #                 "WS.GetConfig",
+        #                 "Modbus.GetStatus",
+        #                 "Modbus.GetConfig",
+        #                 "BTHome.GetStatus",
+        #                 "BTHome.GetConfig",
+        #             ]
+        #         )
+        #     }
+        # if method == "Shelly.GetComponents":
+        #     status = await _status_payload(request)
+        #     components = []
+        #     for key in sorted(set(status) | set(MOCK_SHELLY_CONFIG)):
+        #         components.append(
+        #             {
+        #                 "key": key,
+        #                 "status": status.get(key),
+        #                 "config": MOCK_SHELLY_CONFIG.get(key),
+        #             }
+        #         )
+        #     return {
+        #         "cfg_rev": 1,
+        #         "offset": 0,
+        #         "total": len(components),
+        #         "components": components,
+        #     }
         if method == "System.GetStatus":
             return (await _status_payload(request)).get("sys", {})
         if method == "System.GetConfig":
@@ -285,12 +287,12 @@ def create_app(settings: Settings) -> web.Application:
             return MOCK_SHELLY_CONFIG.get("ws", {})
         if method == "Modbus.GetStatus":
             return (await _status_payload(request)).get("modbus", {})
-        if method == "Modbus.GetConfig":
-            return MOCK_SHELLY_CONFIG.get("modbus", {})
+        # if method == "Modbus.GetConfig":
+        #     return MOCK_SHELLY_CONFIG.get("modbus", {})
         if method == "BTHome.GetStatus":
             return (await _status_payload(request)).get("bthome", {})
-        if method == "BTHome.GetConfig":
-            return MOCK_SHELLY_CONFIG.get("bthome", {})
+        # if method == "BTHome.GetConfig":
+        #     return MOCK_SHELLY_CONFIG.get("bthome", {})
         if method == "EMData.GetStatus":
             return _emdata_status_payload()
         raise KeyError(method)
