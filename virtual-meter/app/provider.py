@@ -179,7 +179,7 @@ def create_app(settings: Settings) -> web.Application:
         info["id"] = device_id(mac)
         info.pop("slot", None)
         info.pop("profile", None)
-        info.pop("gen", None)
+        #info.pop("gen", None)
         return info
 
     def _emdata_status_payload() -> dict[str, Any]:
