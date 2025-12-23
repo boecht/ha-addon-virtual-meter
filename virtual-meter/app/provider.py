@@ -279,9 +279,11 @@ def create_app(settings: Settings) -> web.Application:
         if request.method == "GET":
             method = request.query.get("method")
             if not method:
-                return _jsonrpc_response(
+                response = _jsonrpc_response(
                     None, None, {"code": -32600, "message": "Invalid Request"}
-                ).with_status(500)
+                )
+                response.set_status(500)
+                return response
             params = dict(request.query)
             params.pop("method", None)
             try:
@@ -297,9 +299,11 @@ def create_app(settings: Settings) -> web.Application:
         params = body.get("params") if isinstance(body.get("params"), dict) else None
         request_id = body.get("id")
         if not method:
-            return _jsonrpc_response(
+            response = _jsonrpc_response(
                 request_id, None, {"code": -32600, "message": "Invalid Request"}
-            ).with_status(500)
+            )
+            response.set_status(500)
+            return response
         try:
             result = await _rpc_dispatch(method, request, params)
             return _jsonrpc_response(request_id, result)
