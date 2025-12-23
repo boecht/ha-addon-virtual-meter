@@ -287,10 +287,8 @@ def create_app(settings: Settings) -> web.Application:
                 except json.JSONDecodeError:
                     await ws.send_json(
                         {
-                            "jsonrpc": "2.0",
                             "id": None,
                             "src": DEVICE_ID,
-                            "dst": "client",
                             "error": {"code": -32700, "message": "Parse error"},
                         }
                     )
@@ -300,28 +298,22 @@ def create_app(settings: Settings) -> web.Application:
                 request_id = body.get("id")
                 if not method:
                     response = {
-                        "jsonrpc": "2.0",
                         "id": request_id,
                         "src": DEVICE_ID,
-                        "dst": "client",
                         "error": {"code": -32600, "message": "Invalid Request"},
                     }
                 else:
                     try:
                         result = await _rpc_dispatch(method, request, params)
                         response = {
-                            "jsonrpc": "2.0",
                             "id": request_id,
                             "src": DEVICE_ID,
-                            "dst": "client",
                             "result": result,
                         }
                     except KeyError:
                         response = {
-                            "jsonrpc": "2.0",
                             "id": request_id,
                             "src": DEVICE_ID,
-                            "dst": "client",
                             "error": {"code": -32601, "message": "Method not found"},
                         }
                 if settings.debug_logging:

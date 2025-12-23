@@ -57,6 +57,7 @@ MOCK_EMDATA_STATUS = {
 MOCK_DEVICE_INFO = {
     "id": DEVICE_ID,
     "mac": "000000000000",
+    "slot": 1,
     "model": "SPEM-003CEBEU",
     "gen": 2,
     "fw_id": "20241011-114455/1.4.4-g6d2a586",
@@ -64,6 +65,7 @@ MOCK_DEVICE_INFO = {
     "app": "Pro3EM",
     "auth_en": False,
     "auth_domain": None,
+    "profile": "triphase",
 }
 
 MOCK_SHELLY_STATUS = {
