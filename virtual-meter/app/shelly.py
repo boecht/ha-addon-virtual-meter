@@ -228,7 +228,7 @@ def em_status_from_values(values: dict[str, float]) -> dict[str, Any]:
         #"n_current": values.get("n_current"),
         #"n_errors": [],
         #"total_current": values.get("total_current"),
-        "total_act_power": values.get("total_act_power"),
+        #"total_act_power": values.get("total_act_power"),
         #"total_aprt_power": values.get("total_aprt_power"),
         #"user_calibrated_phase": [],
         #"errors": [],
