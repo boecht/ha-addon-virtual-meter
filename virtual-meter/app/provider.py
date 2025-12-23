@@ -281,10 +281,10 @@ def create_app(settings: Settings) -> web.Application:
         #     return (await _status_payload(request)).get("mqtt", {})
         # if method == "MQTT.GetConfig":
         #     return MOCK_SHELLY_CONFIG.get("mqtt", {})
-        # if method == "WS.GetStatus":
-        #     return (await _status_payload(request)).get("ws", {})
-        # if method == "WS.GetConfig":
-        #     return MOCK_SHELLY_CONFIG.get("ws", {})
+        if method == "WS.GetStatus":
+            return (await _status_payload(request)).get("ws", {})
+        if method == "WS.GetConfig":
+            return MOCK_SHELLY_CONFIG.get("ws", {})
         if method == "Modbus.GetStatus":
             return (await _status_payload(request)).get("modbus", {})
         # if method == "Modbus.GetConfig":
