@@ -1,5 +1,5 @@
 name: Virtual Meter
-version: "0.0.30"
+version: "0.0.31"
 slug: virtual-meter
 description: "Shelly Pro 3EM emulator for Hoymiles battery systems"
 url: "https://github.com/boecht/ha-addon-virtual-meter"
@@ -18,6 +18,7 @@ ingress: false
 homeassistant_api: false
 options:
   http_port: 80
+  device_mac: "DEADBEEFCAFE"
   provider_endpoint: "http://tasmota-aeaa40-2624.fritz.box/cm?cmnd=Status%2010"
   poll_interval_ms: 1000
   l1_current_json: "StatusSNS.tasmota.strom_l1"

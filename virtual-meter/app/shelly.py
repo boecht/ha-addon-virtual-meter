@@ -168,7 +168,7 @@ MOCK_SHELLY_CONFIG = {
     "script:0": {"id": 0, "name": "script_0", "enable": False},
     "em:0": {
         "id": 0,
-        "name": "Pro3EM",
+        "name": "Virtual Pro3EM",
         "blink_mode_selector": "active_energy",
         "phase_selector": "all",
         "monitor_phase_sequence": False,

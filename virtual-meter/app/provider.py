@@ -449,7 +449,7 @@ def create_app(settings: Settings) -> web.Application:
 
     app.middlewares.append(log_requests)
 
-    app.router.add_get("/rpc/Shelly.GetStatus", shelly_get_status)
+    # app.router.add_get("/rpc/Shelly.GetStatus", shelly_get_status)
     app.router.add_get("/rpc/EM.GetStatus", em_get_status)
     app.router.add_get("/rpc", rpc_root)
     app.router.add_post("/rpc", rpc_root)
