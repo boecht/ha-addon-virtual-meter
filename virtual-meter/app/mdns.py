@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 import socket
 from dataclasses import dataclass
 
@@ -55,4 +56,7 @@ def start_mdns(port: int = 80) -> MDNSAdvertiser:
         server=f"{SERVICE_NAME}.local.",
     )
     zeroconf.register_service(info)
+    logging.getLogger("virtual_meter.mdns").info(
+        "mDNS advertised: %s at %s:%s", SERVICE_NAME, ip, port
+    )
     return MDNSAdvertiser(zeroconf=zeroconf, info=info)

@@ -35,7 +35,7 @@ def main() -> None:
 
     app = create_app(settings)
 
-    mdns = start_mdns(port=80)
+    mdns = start_mdns(port=settings.http_port)
 
     async def _cleanup(app: web.Application) -> None:
         mdns.close()
