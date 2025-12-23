@@ -14,6 +14,7 @@ from .config import Settings
 from .consumer import HttpConsumer
 from .shelly import (
     MOCK_DEVICE_INFO,
+    MOCK_EMDATA_STATUS,
     MOCK_SHELLY_CONFIG,
     MOCK_SHELLY_STATUS,
     device_id,
@@ -118,6 +119,12 @@ def create_app(settings: Settings) -> web.Application:
     app.on_startup.append(_start_background)
     app.on_cleanup.append(_cleanup)
 
+    async def _on_prepare(request: web.Request, response: web.StreamResponse) -> None:
+        if "Server" not in response.headers:
+            response.headers["Server"] = "ShellyHTTP/1.0.0"
+
+    app.on_response_prepare.append(_on_prepare)
+
     async def _compute_values() -> dict[str, float]:
         from asyncio import sleep
 
@@ -155,7 +162,7 @@ def create_app(settings: Settings) -> web.Application:
         status["eth"] = eth_status
 
         status["em:0"] = em_status
-        status["emdata:0"] = {"id": 0}
+        status["emdata:0"] = dict(MOCK_EMDATA_STATUS)
         return status
 
     async def shelly_get_status(request: web.Request) -> web.Response:
@@ -174,6 +181,9 @@ def create_app(settings: Settings) -> web.Application:
         info["mac"] = mac
         info["id"] = device_id(mac)
         return info
+
+    def _emdata_status_payload() -> dict[str, Any]:
+        return dict(MOCK_EMDATA_STATUS)
 
     def _jsonrpc_response(
         request_id: Any,
@@ -209,6 +219,7 @@ def create_app(settings: Settings) -> web.Application:
                     [
                         "Shelly.GetStatus",
                         "EM.GetStatus",
+                        "EMData.GetStatus",
                         "Shelly.GetDeviceInfo",
                         "Shelly.GetConfig",
                         "Shelly.GetComponents",
@@ -280,6 +291,8 @@ def create_app(settings: Settings) -> web.Application:
             return (await _status_payload(request)).get("bthome", {})
         if method == "BTHome.GetConfig":
             return MOCK_SHELLY_CONFIG.get("bthome", {})
+        if method == "EMData.GetStatus":
+            return _emdata_status_payload()
         raise KeyError(method)
 
     async def _ws_rpc(request: web.Request) -> web.WebSocketResponse:
@@ -424,6 +437,7 @@ def create_app(settings: Settings) -> web.Application:
         logger = logging.getLogger("virtual_meter.requests")
         if settings.debug_logging:
             payload["headers"] = dict(request.headers)
+            payload["response_headers"] = dict(response.headers)
             logger.debug(json.dumps(payload, sort_keys=True))
         elif response.status >= 400:
             logger.warning(json.dumps(payload, sort_keys=True))

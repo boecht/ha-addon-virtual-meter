@@ -13,14 +13,23 @@ TXT_RECORDS = {"gen": "2", "app": "Pro3EM"}
 
 
 def _resolve_ip() -> str:
-    hostname = socket.gethostname()
+    # Prefer the outbound interface IP (works in host_network containers)
     try:
-        ip = socket.gethostbyname(hostname)
-        if ip.startswith("127."):
-            raise OSError
-        return ip
+        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
+            sock.connect(("8.8.8.8", 80))
+            ip = sock.getsockname()[0]
+            if ip and not ip.startswith("127."):
+                return ip
     except OSError:
-        return "0.0.0.0"
+        pass
+    # Fallback: hostname resolution
+    try:
+        ip = socket.gethostbyname(socket.gethostname())
+        if ip and not ip.startswith("127."):
+            return ip
+    except OSError:
+        pass
+    return "0.0.0.0"
 
 
 @dataclass
