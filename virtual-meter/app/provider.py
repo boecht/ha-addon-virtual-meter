@@ -281,7 +281,7 @@ def create_app(settings: Settings) -> web.Application:
             if not method:
                 return _jsonrpc_response(
                     None, None, {"code": -32600, "message": "Invalid Request"}
-                )
+                ).with_status(500)
             params = dict(request.query)
             params.pop("method", None)
             try:
@@ -299,7 +299,7 @@ def create_app(settings: Settings) -> web.Application:
         if not method:
             return _jsonrpc_response(
                 request_id, None, {"code": -32600, "message": "Invalid Request"}
-            )
+            ).with_status(500)
         try:
             result = await _rpc_dispatch(method, request, params)
             return _jsonrpc_response(request_id, result)
@@ -355,6 +355,7 @@ def create_app(settings: Settings) -> web.Application:
             payload["rpc"] = rpc_payload
         logger = logging.getLogger("virtual_meter.requests")
         if settings.debug_logging:
+            payload["headers"] = dict(request.headers)
             logger.debug(json.dumps(payload, sort_keys=True))
         elif response.status >= 400:
             logger.warning(json.dumps(payload, sort_keys=True))
