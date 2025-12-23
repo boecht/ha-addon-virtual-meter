@@ -151,20 +151,16 @@ def create_app(settings: Settings) -> web.Application:
     async def _status_payload(request: web.Request) -> dict[str, Any]:
         values = await _compute_values()
         em_status = em_status_from_values(values)
-        status = dict(MOCK_SHELLY_STATUS)
-        sys_status = dict(status["sys"])
-        sys_status["mac"] = _device_mac_value()
-        sys_status["time"] = datetime.now().strftime("%H:%M")
-        sys_status["unixtime"] = int(datetime.now().timestamp())
-        status["sys"] = sys_status
-
-        eth_status = dict(status["eth"])
-        eth_status["ip"] = local_ip(request)
-        status["eth"] = eth_status
-
-        status["em:0"] = em_status
-        status["emdata:0"] = dict(MOCK_EMDATA_STATUS)
-        return status
+        sys_status = {
+            "mac": _device_mac_value(),
+            "time": datetime.now().strftime("%H:%M"),
+            "unixtime": int(datetime.now().timestamp()),
+        }
+        return {
+            "sys": sys_status,
+            "em:0": em_status,
+            "emdata:0": dict(MOCK_EMDATA_STATUS),
+        }
 
     async def shelly_get_status(request: web.Request) -> web.Response:
         return web.json_response(await _status_payload(request))
@@ -181,10 +177,14 @@ def create_app(settings: Settings) -> web.Application:
         mac = _device_mac_value()
         info["mac"] = mac
         info["id"] = device_id(mac)
+        info.pop("slot", None)
+        info.pop("profile", None)
         return info
 
     def _emdata_status_payload() -> dict[str, Any]:
-        return dict(MOCK_EMDATA_STATUS)
+        payload = dict(MOCK_EMDATA_STATUS)
+        payload.pop("errors", None)
+        return payload
 
     def _jsonrpc_response(
         request_id: Any,
@@ -211,7 +211,13 @@ def create_app(settings: Settings) -> web.Application:
         if method == "Shelly.GetDeviceInfo":
             return _device_info_payload()
         if method == "EM.GetConfig":
-            return MOCK_SHELLY_CONFIG.get("em:0", {})
+            return {
+                "id": 0,
+                "name": "Virtual Pro3EM",
+                "ct_type": "120A",
+                "phase_selector": "all",
+                "reverse": {"a": False, "b": False, "c": False},
+            }
         if method == "EM.GetStatus":
             return em_status_from_values(await _compute_values())
         if method == "EMData.GetStatus":
