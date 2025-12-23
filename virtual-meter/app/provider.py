@@ -266,8 +266,8 @@ def create_app(settings: Settings) -> web.Application:
         #     return (await _status_payload(request)).get("sys", {})
         # if method == "System.GetConfig":
         #     return MOCK_SHELLY_CONFIG.get("sys", {})
-        if method == "WiFi.GetStatus":
-            return (await _status_payload(request)).get("wifi", {})
+        # if method == "WiFi.GetStatus":
+        #     return (await _status_payload(request)).get("wifi", {})
         # if method == "WiFi.GetConfig":
         #     return MOCK_SHELLY_CONFIG.get("wifi", {})
         # if method == "Ethernet.GetStatus":
@@ -453,7 +453,7 @@ def create_app(settings: Settings) -> web.Application:
     app.router.add_get("/rpc/EM.GetStatus", em_get_status)
     app.router.add_get("/rpc", rpc_root)
     app.router.add_post("/rpc", rpc_root)
-    app.router.add_get("/rpc/{method}", rpc_method)
+    # app.router.add_get("/rpc/{method}", rpc_method)
     app.router.add_get("/shelly", shelly_device_info)
 
     return app
