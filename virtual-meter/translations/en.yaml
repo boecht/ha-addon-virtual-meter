@@ -2,6 +2,9 @@ configuration:
   http_port:
     name: HTTP Port
     description: Port to bind the emulated HTTP API (default 80).
+  device_mac:
+    name: Device MAC
+    description: Optional Shelly-style MAC (no colons) used for DeviceInfo and src id.
   provider_endpoint:
     name: Provider Endpoint
     description: HTTP endpoint to poll for source data.

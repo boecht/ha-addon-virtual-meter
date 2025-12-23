@@ -24,6 +24,7 @@ class Settings(BaseModel):
     provider_endpoint: str
     provider_username: str | None = None
     provider_password: str | None = None
+    device_mac: str | None = None
     poll_interval_ms: int
     http_port: int = 80
     l1_current_json: str | None = None
