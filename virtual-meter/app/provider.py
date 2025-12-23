@@ -346,11 +346,13 @@ def create_app(settings: Settings) -> web.Application:
                     )
                 await ws.send_json(response)
                 if method == "EM.GetStatus" and "result" in response:
+                    status_payload = await _status_payload(request)
                     notify = {
                         "src": _device_id_value(),
                         "method": "NotifyStatus",
                         "params": {
                             "ts": time.time(),
+                            "sys": status_payload.get("sys", {}),
                             "em:0": response["result"],
                         },
                     }
@@ -360,6 +362,28 @@ def create_app(settings: Settings) -> web.Application:
                         logger.debug(
                             json.dumps(
                                 {"ws_in": msg.data, "ws_notify": notify}, sort_keys=True
+                            )
+                        )
+                    await ws.send_json(notify)
+                if method == "EMData.GetStatus" and "result" in response:
+                    notify = {
+                        "src": _device_id_value(),
+                        "method": "NotifyStatus",
+                        "params": {
+                            "ts": time.time(),
+                            "emdata:0": response["result"],
+                        },
+                    }
+                    if client_src:
+                        notify["dst"] = client_src
+                    if settings.debug_logging:
+                        logger.debug(
+                            json.dumps(
+                                {
+                                    "ws_in": msg.data,
+                                    "ws_notify": notify,
+                                },
+                                sort_keys=True,
                             )
                         )
                     await ws.send_json(notify)
