@@ -9,7 +9,6 @@ from aiohttp import web
 from .provider import create_app
 from .config import load_settings
 from .mdns import start_mdns
-from .mock import create_app as create_mock_app
 
 
 def main() -> None:
@@ -30,15 +29,11 @@ def main() -> None:
         logging.DEBUG if settings.debug_logging else logging.INFO
     )
     logging.getLogger("virtual_meter.startup").info(
-        "Starting add-on (mock_mode=%s, http_port=%s)",
-        settings.mock_mode,
+        "Starting add-on (http_port=%s)",
         settings.http_port,
     )
 
-    if settings.mock_mode:
-        app = create_mock_app(settings)
-    else:
-        app = create_app(settings)
+    app = create_app(settings)
 
     mdns = start_mdns(port=80)
 

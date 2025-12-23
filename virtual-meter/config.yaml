@@ -32,7 +32,6 @@ options:
   l3_voltage_json: "StatusSNS.tasmota.spannung_l3"
   l3_act_power_json: "StatusSNS.tasmota.wirkleistung_l3"
   l3_freq_json: "StatusSNS.tasmota.netz_frequenz"
-  mock_mode: false
   debug_logging: false
 schema:
   http_port: int(1,65535)
@@ -84,5 +83,4 @@ schema:
   total_act_power_value: float?
   total_aprt_power_json: str?
   total_aprt_power_value: float?
-  mock_mode: bool
   debug_logging: bool

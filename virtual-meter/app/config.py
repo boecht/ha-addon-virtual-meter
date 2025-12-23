@@ -25,7 +25,6 @@ class Settings(BaseModel):
     provider_username: str | None = None
     provider_password: str | None = None
     poll_interval_ms: int
-    mock_mode: bool = False
     http_port: int = 80
     l1_current_json: str | None = None
     l1_current_value: float | None = None
@@ -115,7 +114,6 @@ def load_settings(path: str = "/data/options.json") -> Settings:
         return Settings(
             provider_endpoint="",
             poll_interval_ms=1000,
-            mock_mode=False,
             debug_logging=False,
             http_port=80,
             defaults=defaults,

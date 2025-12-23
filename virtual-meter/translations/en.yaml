@@ -146,9 +146,6 @@ configuration:
   total_aprt_power_value:
     name: Total Aprt Power (VA)
     description: Optional numeric value for total apparent power.
-  mock_mode:
-    name: Mock Mode
-    description: Enable API test mode. Serves static Shelly Gen2 JSON and logs all requests.
   debug_logging:
     name: Debug Logging
     description: Enable verbose debug logs.
