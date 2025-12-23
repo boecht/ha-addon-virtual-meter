@@ -8,7 +8,8 @@ from aiohttp import web
 
 from .provider import create_app
 from .config import load_settings
-from .mdns import start_mdns
+from . import mdns as mdns_module
+from .shelly import device_id, device_mac
 
 
 def main() -> None:
@@ -35,7 +36,9 @@ def main() -> None:
 
     app = create_app(settings)
 
-    mdns = start_mdns(port=settings.http_port)
+    mac = settings.device_mac or device_mac()
+    mdns_module.SERVICE_NAME = device_id(mac)
+    mdns = mdns_module.start_mdns(port=settings.http_port)
 
     async def _cleanup(app: web.Application) -> None:
         mdns.close()
