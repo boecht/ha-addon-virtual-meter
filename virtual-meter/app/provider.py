@@ -194,7 +194,6 @@ def create_app(settings: Settings) -> web.Application:
             "jsonrpc": "2.0",
             "id": request_id if request_id is not None else 1,
             "src": _device_id_value(),
-            "dst": "client",
         }
         if error is not None:
             response["error"] = error
