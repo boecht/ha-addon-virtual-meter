@@ -16,6 +16,9 @@ profile addon-virtual-meter flags=(attach_disconnected,mediate_deleted) {
   /usr/bin/python3 ix,
   /init rix,
   /bin/sh ix,
+  /command/s6-overlay-suexec ix,
+  /usr/bin/s6-overlay-suexec ix,
+  /s6-overlay/s6-overlay-suexec ix,
 
   /etc/cont-init.d/** r,
   /etc/services.d/** r,
