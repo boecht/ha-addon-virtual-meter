@@ -5,13 +5,17 @@ from __future__ import annotations
 from datetime import datetime
 import json
 import logging
+from typing import Any
+from contextlib import suppress
 
 from aiohttp import web
 
 from .config import Settings
 from .consumer import HttpConsumer
 from .shelly import (
+    DEVICE_ID,
     MOCK_DEVICE_INFO,
+    MOCK_SHELLY_CONFIG,
     MOCK_SHELLY_STATUS,
     device_mac,
     em_status_from_values,
@@ -99,6 +103,9 @@ def create_app(settings: Settings) -> web.Application:
         task = app.get("consumer_task")
         if task:
             task.cancel()
+            with suppress(Exception):
+                await task
+        await consumer.stop()
         logging.getLogger("virtual_meter.provider").info("Cleanup complete")
 
     app.on_startup.append(_start_background)
@@ -126,7 +133,7 @@ def create_app(settings: Settings) -> web.Application:
         )
         return cache or {}
 
-    async def shelly_get_status(request: web.Request) -> web.Response:
+    async def _status_payload(request: web.Request) -> dict[str, Any]:
         values = await _compute_values()
         em_status = em_status_from_values(values)
         status = dict(MOCK_SHELLY_STATUS)
@@ -142,7 +149,10 @@ def create_app(settings: Settings) -> web.Application:
 
         status["em:0"] = em_status
         status["emdata:0"] = {"id": 0}
-        return web.json_response(status)
+        return status
+
+    async def shelly_get_status(request: web.Request) -> web.Response:
+        return web.json_response(await _status_payload(request))
 
     async def em_get_status(request: web.Request) -> web.Response:
         values = await _compute_values()
@@ -153,8 +163,181 @@ def create_app(settings: Settings) -> web.Application:
         info["mac"] = device_mac()
         return web.json_response(info)
 
+    def _device_info_payload() -> dict[str, Any]:
+        info = dict(MOCK_DEVICE_INFO)
+        info["mac"] = device_mac()
+        return info
+
+    def _jsonrpc_response(
+        request_id: Any,
+        result: dict[str, Any] | None,
+        error: dict[str, Any] | None = None,
+    ) -> web.Response:
+        response: dict[str, Any] = {
+            "jsonrpc": "2.0",
+            "id": request_id if request_id is not None else 1,
+            "src": DEVICE_ID,
+            "dst": "client",
+        }
+        if error is not None:
+            response["error"] = error
+        else:
+            response["result"] = result or {}
+        return web.json_response(response)
+
+    async def _rpc_dispatch(
+        method: str, request: web.Request, params: dict[str, Any] | None
+    ) -> dict[str, Any]:
+        if method == "Shelly.GetStatus":
+            return await _status_payload(request)
+        if method == "EM.GetStatus":
+            return em_status_from_values(await _compute_values())
+        if method == "Shelly.GetDeviceInfo":
+            return _device_info_payload()
+        if method == "Shelly.GetConfig":
+            return MOCK_SHELLY_CONFIG
+        if method == "Shelly.ListMethods":
+            return {
+                "methods": sorted(
+                    [
+                        "Shelly.GetStatus",
+                        "EM.GetStatus",
+                        "Shelly.GetDeviceInfo",
+                        "Shelly.GetConfig",
+                        "Shelly.GetComponents",
+                        "System.GetStatus",
+                        "System.GetConfig",
+                        "WiFi.GetStatus",
+                        "WiFi.GetConfig",
+                        "Ethernet.GetStatus",
+                        "Ethernet.GetConfig",
+                        "Cloud.GetStatus",
+                        "Cloud.GetConfig",
+                        "MQTT.GetStatus",
+                        "MQTT.GetConfig",
+                        "WS.GetStatus",
+                        "WS.GetConfig",
+                        "Modbus.GetStatus",
+                        "Modbus.GetConfig",
+                        "BTHome.GetStatus",
+                        "BTHome.GetConfig",
+                    ]
+                )
+            }
+        if method == "Shelly.GetComponents":
+            status = await _status_payload(request)
+            components = []
+            for key in sorted(set(status) | set(MOCK_SHELLY_CONFIG)):
+                components.append(
+                    {
+                        "key": key,
+                        "status": status.get(key),
+                        "config": MOCK_SHELLY_CONFIG.get(key),
+                    }
+                )
+            return {
+                "cfg_rev": 1,
+                "offset": 0,
+                "total": len(components),
+                "components": components,
+            }
+        if method == "System.GetStatus":
+            return (await _status_payload(request)).get("sys", {})
+        if method == "System.GetConfig":
+            return MOCK_SHELLY_CONFIG.get("sys", {})
+        if method == "WiFi.GetStatus":
+            return (await _status_payload(request)).get("wifi", {})
+        if method == "WiFi.GetConfig":
+            return MOCK_SHELLY_CONFIG.get("wifi", {})
+        if method == "Ethernet.GetStatus":
+            return (await _status_payload(request)).get("eth", {})
+        if method == "Ethernet.GetConfig":
+            return MOCK_SHELLY_CONFIG.get("eth", {})
+        if method == "Cloud.GetStatus":
+            return (await _status_payload(request)).get("cloud", {})
+        if method == "Cloud.GetConfig":
+            return MOCK_SHELLY_CONFIG.get("cloud", {})
+        if method == "MQTT.GetStatus":
+            return (await _status_payload(request)).get("mqtt", {})
+        if method == "MQTT.GetConfig":
+            return MOCK_SHELLY_CONFIG.get("mqtt", {})
+        if method == "WS.GetStatus":
+            return (await _status_payload(request)).get("ws", {})
+        if method == "WS.GetConfig":
+            return MOCK_SHELLY_CONFIG.get("ws", {})
+        if method == "Modbus.GetStatus":
+            return (await _status_payload(request)).get("modbus", {})
+        if method == "Modbus.GetConfig":
+            return MOCK_SHELLY_CONFIG.get("modbus", {})
+        if method == "BTHome.GetStatus":
+            return (await _status_payload(request)).get("bthome", {})
+        if method == "BTHome.GetConfig":
+            return MOCK_SHELLY_CONFIG.get("bthome", {})
+        raise KeyError(method)
+
+    async def rpc_root(request: web.Request) -> web.Response:
+        if request.method == "GET":
+            method = request.query.get("method")
+            if not method:
+                return _jsonrpc_response(
+                    None, None, {"code": -32600, "message": "Invalid Request"}
+                )
+            params = dict(request.query)
+            params.pop("method", None)
+            try:
+                result = await _rpc_dispatch(method, request, params)
+                return _jsonrpc_response(None, result)
+            except KeyError:
+                return _jsonrpc_response(
+                    None, None, {"code": -32601, "message": "Method not found"}
+                )
+
+        body = await request.json()
+        method = body.get("method")
+        params = body.get("params") if isinstance(body.get("params"), dict) else None
+        request_id = body.get("id")
+        if not method:
+            return _jsonrpc_response(
+                request_id, None, {"code": -32600, "message": "Invalid Request"}
+            )
+        try:
+            result = await _rpc_dispatch(method, request, params)
+            return _jsonrpc_response(request_id, result)
+        except KeyError:
+            return _jsonrpc_response(
+                request_id, None, {"code": -32601, "message": "Method not found"}
+            )
+
+    async def rpc_method(request: web.Request) -> web.Response:
+        method = request.match_info.get("method")
+        try:
+            result = await _rpc_dispatch(method, request, None)
+            return web.json_response({"result": result})
+        except KeyError:
+            return web.json_response(
+                {"error": {"code": -32601, "message": "Method not found"}}
+            )
+
     @web.middleware
     async def log_requests(request: web.Request, handler):
+        rpc_payload: dict[str, Any] | None = None
+        if request.path.startswith("/rpc"):
+            if request.method == "GET":
+                method = request.query.get("method")
+                rpc_payload = {
+                    "transport": "query",
+                    "method": method or request.match_info.get("method"),
+                    "query": dict(request.query),
+                }
+            else:
+                try:
+                    body = await request.json()
+                except Exception:
+                    body = await request.text()
+                rpc_payload = {
+                    "transport": "body",
+                    "body": body,
+                }
         response = await handler(request)
         payload = {
             "ts": datetime.now().isoformat(),
@@ -168,15 +351,22 @@ def create_app(settings: Settings) -> web.Application:
                 "accept": request.headers.get("Accept"),
             },
         }
-        logging.getLogger("virtual_meter.requests").info(
-            json.dumps(payload, sort_keys=True)
-        )
+        if rpc_payload is not None:
+            payload["rpc"] = rpc_payload
+        logger = logging.getLogger("virtual_meter.requests")
+        if settings.debug_logging:
+            logger.debug(json.dumps(payload, sort_keys=True))
+        elif response.status >= 400:
+            logger.warning(json.dumps(payload, sort_keys=True))
         return response
 
     app.middlewares.append(log_requests)
 
     app.router.add_get("/rpc/Shelly.GetStatus", shelly_get_status)
     app.router.add_get("/rpc/EM.GetStatus", em_get_status)
+    app.router.add_get("/rpc", rpc_root)
+    app.router.add_post("/rpc", rpc_root)
+    app.router.add_get("/rpc/{method}", rpc_method)
     app.router.add_get("/shelly", shelly_device_info)
 
     return app

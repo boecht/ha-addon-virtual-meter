@@ -135,16 +135,16 @@ configuration:
     name: Total Current (A)
     description: Optional numeric value for total current.
   total_act_power_json:
-    name: Total Act Power (JSON Path)
+    name: Total Active Power (JSON Path)
     description: Path to total active power in provider endpoint, JSON values override numeric values.
   total_act_power_value:
-    name: Total Act Power (W)
+    name: Total Active Power (W)
     description: Optional numeric value for total active power.
   total_aprt_power_json:
-    name: Total Aprt Power (JSON Path)
+    name: Total Apparent Power (JSON Path)
     description: Path to total apparent power in provider endpoint, JSON values override numeric values.
   total_aprt_power_value:
-    name: Total Aprt Power (VA)
+    name: Total Apparent Power (VA)
     description: Optional numeric value for total apparent power.
   debug_logging:
     name: Debug Logging

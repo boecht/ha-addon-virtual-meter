@@ -26,6 +26,8 @@ This add-on emulates a Shelly Pro 3EM (Gen2) device so a Hoymiles battery system
 
 - `/rpc/Shelly.GetStatus`
 - `/rpc/EM.GetStatus?id=0`
+- `/rpc/<method>` (result-only responses for supported Shelly Gen2 methods)
+- `/rpc` (JSON-RPC 2.0 requests)
 - `/shelly` (device info)
 
 ## Value resolution order

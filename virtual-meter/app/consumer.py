@@ -37,27 +37,37 @@ class HttpConsumer:
         timeout = ClientTimeout(total=10)
         self._session = ClientSession(timeout=timeout)
         logger.info("Starting provider polling: %s", self.endpoint)
-        while True:
-            try:
-                params = None
-                if self.username and self.password:
-                    params = {"user": self.username, "password": self.password}
-                async with self._session.get(self.endpoint, params=params) as resp:
-                    payload = await resp.json(content_type=None)
-                    if isinstance(payload, dict):
-                        self.latest = ConsumerSnapshot(
-                            data=payload, fetched_at=datetime.now(timezone.utc)
-                        )
-                        logger.debug("Provider payload keys: %s", list(payload.keys()))
-                        if "WARNING" in payload:
-                            logger.error("Provider warning response: %s", payload)
-            except Exception:
-                logger.exception("Failed to fetch provider endpoint")
-                # Keep last known good data
-            await _sleep_ms(self.poll_interval_ms)
+        try:
+            while True:
+                try:
+                    params = None
+                    if self.username and self.password:
+                        params = {"user": self.username, "password": self.password}
+                    async with self._session.get(self.endpoint, params=params) as resp:
+                        payload = await resp.json(content_type=None)
+                        if isinstance(payload, dict):
+                            self.latest = ConsumerSnapshot(
+                                data=payload, fetched_at=datetime.now(timezone.utc)
+                            )
+                            logger.debug("Provider payload keys: %s", list(payload.keys()))
+                            if "WARNING" in payload:
+                                logger.error("Provider warning response: %s", payload)
+                except Exception:
+                    logger.exception("Failed to fetch provider endpoint")
+                    # Keep last known good data
+                await _sleep_ms(self.poll_interval_ms)
+        finally:
+            await self._close_session()
 
     def get_latest(self) -> ConsumerSnapshot | None:
         return self.latest
+
+    async def stop(self) -> None:
+        await self._close_session()
+
+    async def _close_session(self) -> None:
+        if self._session is not None and not self._session.closed:
+            await self._session.close()
 
 
 async def _sleep_ms(duration_ms: int) -> None:
