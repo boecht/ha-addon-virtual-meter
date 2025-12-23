@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from datetime import datetime
 import json
+import time
 import logging
 from typing import Any
 from contextlib import suppress
@@ -316,6 +317,7 @@ def create_app(settings: Settings) -> web.Application:
                     )
                     continue
                 method = body.get("method")
+                client_src = body.get("src")
                 params = body.get("params") if isinstance(body.get("params"), dict) else None
                 request_id = body.get("id")
                 if not method:
@@ -343,6 +345,24 @@ def create_app(settings: Settings) -> web.Application:
                         json.dumps({"ws_in": msg.data, "ws_out": response}, sort_keys=True)
                     )
                 await ws.send_json(response)
+                if method == "EM.GetStatus" and "result" in response:
+                    notify = {
+                        "src": _device_id_value(),
+                        "method": "NotifyStatus",
+                        "params": {
+                            "ts": time.time(),
+                            "em:0": response["result"],
+                        },
+                    }
+                    if client_src:
+                        notify["dst"] = client_src
+                    if settings.debug_logging:
+                        logger.debug(
+                            json.dumps(
+                                {"ws_in": msg.data, "ws_notify": notify}, sort_keys=True
+                            )
+                        )
+                    await ws.send_json(notify)
             elif msg.type == web.WSMsgType.ERROR:
                 logger.warning("WebSocket error: %s", ws.exception())
         return ws
