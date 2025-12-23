@@ -213,8 +213,6 @@ def create_app(settings: Settings) -> web.Application:
             return {
                 "id": 0,
                 "name": "Virtual Pro3EM",
-                "ct_type": "120A",
-                "phase_selector": "all",
             }
         if method == "EM.GetStatus":
             return em_status_from_values(await _compute_values())
