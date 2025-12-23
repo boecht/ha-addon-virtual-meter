@@ -275,14 +275,16 @@ def create_app(settings: Settings) -> web.Application:
             return MOCK_SHELLY_CONFIG.get("bthome", {})
         raise KeyError(method)
 
-    async def rpc_root(request: web.Request) -> web.Response:
+    async def rpc_root(request: web.Request) -> web.StreamResponse:
         if request.method == "GET":
             method = request.query.get("method")
             if not method:
-                response = _jsonrpc_response(
-                    None, None, {"code": -32600, "message": "Invalid Request"}
+                response = web.StreamResponse(
+                    status=500,
+                    headers={"Server": "ShellyHTTP/1.0.0", "Content-Length": "0"},
                 )
-                response.set_status(500)
+                await response.prepare(request)
+                await response.write_eof()
                 return response
             params = dict(request.query)
             params.pop("method", None)
@@ -299,10 +301,12 @@ def create_app(settings: Settings) -> web.Application:
         params = body.get("params") if isinstance(body.get("params"), dict) else None
         request_id = body.get("id")
         if not method:
-            response = _jsonrpc_response(
-                request_id, None, {"code": -32600, "message": "Invalid Request"}
+            response = web.StreamResponse(
+                status=500,
+                headers={"Server": "ShellyHTTP/1.0.0", "Content-Length": "0"},
             )
-            response.set_status(500)
+            await response.prepare(request)
+            await response.write_eof()
             return response
         try:
             result = await _rpc_dispatch(method, request, params)
