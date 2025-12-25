@@ -72,6 +72,9 @@ def main() -> None:
 
     async def _handle_snapshot(snapshot: ConsumerSnapshot) -> None:
         """Decode, assemble, serialize, and cache payloads for one poll tick."""
+        from asyncio import sleep
+
+        await sleep(0)
         logger = logging.getLogger("virtual_meter.pipeline")
         try:
             payload = decode(snapshot.raw)
