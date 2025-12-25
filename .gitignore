@@ -1,18 +1,46 @@
+# Python bytecode and cache
 __pycache__/
-*.py[cod]
-*.pyo
+*.pyc
 *.pyd
-*.so
-.pytest_cache/
-.mypy_cache/
-.ruff_cache/
+*.pyo
+*.egg-info
+
+# Virtual environments
 .venv/
-.env
-.env.*
-.vscode/
-.idea/
-.DS_Store
-Thumbs.db
+.Python
+lib/
+lib64/
+var/
+
+# Build artifacts
 build/
 dist/
-*.egg-info/
+sdist/
+wheels/
+parts/
+downloads/
+.installed.cfg
+MANIFEST
+artifacts/
+
+# Testing and coverage
+.*cache
+.coverage
+coverage.json
+coverage.xml
+htmlcov/
+.hypothesis/
+.benchmarks/
+megalinter-reports/
+
+# IDE and editor
+.vscode/*
+!.vscode/mcp.json
+.claude/
+.serena/
+
+# Local configuration (private/personal)
+*.local.toml
+
+# Logs
+*.log

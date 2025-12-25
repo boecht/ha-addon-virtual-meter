@@ -57,6 +57,6 @@ def start_mdns(port: int = 80) -> MDNSAdvertiser:
     )
     zeroconf.register_service(info)
     logging.getLogger("virtual_meter.mdns").info(
-        "mDNS advertised: %s at %s:%s", SERVICE_NAME, ip, port
+        "mDNS advertised (name=%s, ip=%s, port=%s)", SERVICE_NAME, ip, port
     )
     return MDNSAdvertiser(zeroconf=zeroconf, info=info)

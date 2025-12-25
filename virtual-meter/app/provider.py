@@ -1,4 +1,4 @@
-"""HTTP RPC emulation (real mode)."""
+"""Serve cached RPC payloads over HTTP/WebSocket with JSON-RPC framing."""
 
 from __future__ import annotations
 
@@ -6,87 +6,21 @@ from datetime import datetime
 import json
 import logging
 from typing import Any
-from contextlib import suppress
 
 from aiohttp import web
 
+from .cache import get_payload
 from .config import Settings
-from .consumer import HttpConsumer
-from .shelly import (
-    MOCK_DEVICE_INFO,
-    MOCK_EMDATA_STATUS,
-    device_id,
-    device_mac,
-    em_status_from_values,
-)
-from .transformer import transform
 
 
-def _json_paths(settings: Settings) -> dict[str, str | None]:
-    return {
-        "l1_act_power": settings.l1_act_power_json,
-        "l2_act_power": settings.l2_act_power_json,
-        "l3_act_power": settings.l3_act_power_json,
-    }
-
-
-def _overrides(settings: Settings) -> dict[str, float | None]:
-    return {
-        "l1_act_power": settings.l1_act_power_value,
-        "l2_act_power": settings.l2_act_power_value,
-        "l3_act_power": settings.l3_act_power_value,
-    }
-
-
-def _offsets(settings: Settings) -> dict[str, float | None]:
-    return {
-        "l1_act_power": settings.l1_power_offset,
-        "l2_act_power": settings.l2_power_offset,
-        "l3_act_power": settings.l3_power_offset,
-    }
-
-
-def create_app(settings: Settings) -> web.Application:
-    """Create aiohttp app and register RPC routes for real mode."""
+def create_app(settings: Settings, device_id: str) -> web.Application:
+    """Create the aiohttp app that serves cached payloads."""
     app = web.Application()
-    consumer = HttpConsumer(
-        settings.provider_endpoint,
-        settings.poll_interval_ms,
-        settings.provider_username,
-        settings.provider_password,
-    )
-    cache: dict[str, float] | None = None
-
-    def _device_mac_value() -> str:
-        mac = settings.device_mac or device_mac()
-        return mac.replace(":", "").upper()
-
-    def _device_id_value() -> str:
-        return device_id(_device_mac_value())
-
-    async def _start_background(app: web.Application) -> None:
-        from asyncio import sleep
-
-        await sleep(0)
-        app["consumer_task"] = app.loop.create_task(consumer.start())
-        logging.getLogger("virtual_meter.provider").info("Consumer task started")
-
-    async def _cleanup(app: web.Application) -> None:
-        from asyncio import sleep
-
-        await sleep(0)
-        task = app.get("consumer_task")
-        if task:
-            task.cancel()
-            with suppress(Exception):
-                await task
-        await consumer.stop()
-        logging.getLogger("virtual_meter.provider").info("Cleanup complete")
-
-    app.on_startup.append(_start_background)
-    app.on_cleanup.append(_cleanup)
+    rpc_logger = logging.getLogger("virtual_meter.rpc")
+    request_logger = logging.getLogger("virtual_meter.rpc.requests")
 
     async def _on_prepare(request: web.Request, response: web.StreamResponse) -> None:
+        """Inject the emulated server header when missing."""
         from asyncio import sleep
 
         await sleep(0)
@@ -95,135 +29,92 @@ def create_app(settings: Settings) -> web.Application:
 
     app.on_response_prepare.append(_on_prepare)
 
-    async def _compute_values() -> dict[str, float]:
+    def _jsonrpc_success_bytes(request_id: Any, result_bytes: bytes) -> bytes:
+        """Wrap an already-serialized result in a JSON-RPC success envelope."""
+        request_id_value = request_id if request_id is not None else 1
+        id_json = json.dumps(request_id_value, separators=(",", ":"), sort_keys=True)
+        src_json = json.dumps(device_id, separators=(",", ":"), sort_keys=True)
+        if not isinstance(result_bytes, (bytes, bytearray)):
+            result_bytes = str(result_bytes).encode("utf-8")
+        return (
+            b'{"jsonrpc":"2.0","id":'
+            + id_json.encode("utf-8")
+            + b',"src":'
+            + src_json.encode("utf-8")
+            + b',"result":'
+            + bytes(result_bytes)
+            + b"}"
+        )
+
+    def _jsonrpc_error_bytes(request_id: Any, error: dict[str, Any]) -> bytes:
+        """Build a JSON-RPC error envelope."""
+        request_id_value = request_id if request_id is not None else 1
+        id_json = json.dumps(request_id_value, separators=(",", ":"), sort_keys=True)
+        src_json = json.dumps(device_id, separators=(",", ":"), sort_keys=True)
+        error_json = json.dumps(error, separators=(",", ":"), sort_keys=True)
+        return (
+            b'{"jsonrpc":"2.0","id":'
+            + id_json.encode("utf-8")
+            + b',"src":'
+            + src_json.encode("utf-8")
+            + b',"error":'
+            + error_json.encode("utf-8")
+            + b"}"
+        )
+
+    async def _dispatch_payload(method: str) -> bytes | None:
+        """Resolve a cached payload for the given RPC method."""
         from asyncio import sleep
 
         await sleep(0)
-        nonlocal cache
-        latest = consumer.get_latest()
-        source_json = latest.data if latest else {}
-        values = transform(
-            source_json,
-            _json_paths(settings),
-            _overrides(settings),
-            _offsets(settings),
-        )
-        if values:
-            cache = values
-            return values
-        logging.getLogger("virtual_meter.provider").warning(
-            "Using cached values; no data available"
-        )
-        return cache or {}
-
-    async def _status_payload() -> dict[str, Any]:
-        values = await _compute_values()
-        em_status = em_status_from_values(values)
-        sys_status = {
-            "mac": _device_mac_value(),
-            "time": datetime.now().strftime("%H:%M"),
-            "unixtime": int(datetime.now().timestamp()),
-        }
-        return {
-            "sys": sys_status,
-            "em:0": em_status,
-            "emdata:0": dict(MOCK_EMDATA_STATUS),
-        }
-
-    def _device_info_payload() -> dict[str, Any]:
-        info = dict(MOCK_DEVICE_INFO)
-        mac = _device_mac_value()
-        info["mac"] = mac
-        info["id"] = device_id(mac)
-        info.pop("slot", None)
-        info.pop("profile", None)
-        return info
-
-    def _emdata_status_payload() -> dict[str, Any]:
-        return {"id": 0}
-
-    def _jsonrpc_response(
-        request_id: Any,
-        result: dict[str, Any] | None,
-        error: dict[str, Any] | None = None,
-    ) -> web.Response:
-        response: dict[str, Any] = {
-            "jsonrpc": "2.0",
-            "id": request_id if request_id is not None else 1,
-            "src": _device_id_value(),
-        }
-        if error is not None:
-            response["error"] = error
-        else:
-            response["result"] = result or {}
-        return web.json_response(response)
-
-    async def _rpc_dispatch(method: str) -> dict[str, Any]:
-        if method == "Shelly.GetStatus":
-            return await _status_payload()
-        if method == "Shelly.GetDeviceInfo":
-            return _device_info_payload()
-        if method == "EM.GetConfig":
-            return {
-                "id": 0,
-                "name": "Virtual Pro3EM",
-            }
-        if method == "EM.GetStatus":
-            return em_status_from_values(await _compute_values())
-        if method == "EMData.GetStatus":
-            return _emdata_status_payload()
-        raise KeyError(method)
+        return get_payload(method)
 
     async def _ws_rpc(request: web.Request) -> web.WebSocketResponse:
+        """Handle JSON-RPC over WebSocket."""
         ws = web.WebSocketResponse()
         ws.headers["Server"] = "ShellyHTTP/1.0.0"
         await ws.prepare(request)
-        logger = logging.getLogger("virtual_meter.requests")
         async for msg in ws:
             if msg.type == web.WSMsgType.TEXT:
                 try:
                     body = json.loads(msg.data)
                 except json.JSONDecodeError:
-                    await ws.send_json(
-                        {
-                            "id": None,
-                            "src": _device_id_value(),
-                            "error": {"code": -32700, "message": "Parse error"},
-                        }
+                    await ws.send_bytes(
+                        _jsonrpc_error_bytes(
+                            None, {"code": -32700, "message": "Parse error"}
+                        )
                     )
                     continue
                 method = body.get("method")
                 request_id = body.get("id")
                 if not method:
-                    response = {
-                        "id": request_id,
-                        "src": _device_id_value(),
-                        "error": {"code": -32600, "message": "Invalid Request"},
-                    }
-                else:
-                    try:
-                        result = await _rpc_dispatch(method)
-                        response = {
-                            "id": request_id,
-                            "src": _device_id_value(),
-                            "result": result,
-                        }
-                    except KeyError:
-                        response = {
-                            "id": request_id,
-                            "src": _device_id_value(),
-                            "error": {"code": -32601, "message": "Method not found"},
-                        }
-                if settings.debug_logging:
-                    logger.debug(
-                        json.dumps({"ws_in": msg.data, "ws_out": response}, sort_keys=True)
+                    response_bytes = _jsonrpc_error_bytes(
+                        request_id, {"code": -32600, "message": "Invalid Request"}
                     )
-                await ws.send_json(response)
+                else:
+                    payload = await _dispatch_payload(method)
+                    if payload is None:
+                        response_bytes = _jsonrpc_error_bytes(
+                            request_id, {"code": -32601, "message": "Method not found"}
+                        )
+                    else:
+                        response_bytes = _jsonrpc_success_bytes(request_id, payload)
+                if settings.debug_logging:
+                    rpc_logger.debug(
+                        json.dumps(
+                            {
+                                "ws_in": msg.data,
+                                "ws_out": response_bytes.decode("utf-8", "replace"),
+                            }
+                        )
+                    )
+                await ws.send_bytes(response_bytes)
             elif msg.type == web.WSMsgType.ERROR:
-                logger.warning("WebSocket error: %s", ws.exception())
+                rpc_logger.info("WebSocket error: %s", ws.exception())
         return ws
 
     async def rpc_root(request: web.Request) -> web.StreamResponse:
+        """Route JSON-RPC requests over HTTP or WebSocket."""
         ws_probe = web.WebSocketResponse()
         if ws_probe.can_prepare(request):
             return await _ws_rpc(request)
@@ -237,13 +128,14 @@ def create_app(settings: Settings) -> web.Application:
                 await response.prepare(request)
                 await response.write_eof()
                 return response
-            try:
-                result = await _rpc_dispatch(method)
-                return _jsonrpc_response(None, result)
-            except KeyError:
-                return _jsonrpc_response(
-                    None, None, {"code": -32601, "message": "Method not found"}
+            payload = await _dispatch_payload(method)
+            if payload is None:
+                response_bytes = _jsonrpc_error_bytes(
+                    None, {"code": -32601, "message": "Method not found"}
                 )
+            else:
+                response_bytes = _jsonrpc_success_bytes(None, payload)
+            return web.Response(body=response_bytes, content_type="application/json")
 
         body = await request.json()
         method = body.get("method")
@@ -256,16 +148,18 @@ def create_app(settings: Settings) -> web.Application:
             await response.prepare(request)
             await response.write_eof()
             return response
-        try:
-            result = await _rpc_dispatch(method)
-            return _jsonrpc_response(request_id, result)
-        except KeyError:
-            return _jsonrpc_response(
-                request_id, None, {"code": -32601, "message": "Method not found"}
+        payload = await _dispatch_payload(method)
+        if payload is None:
+            response_bytes = _jsonrpc_error_bytes(
+                request_id, {"code": -32601, "message": "Method not found"}
             )
+        else:
+            response_bytes = _jsonrpc_success_bytes(request_id, payload)
+        return web.Response(body=response_bytes, content_type="application/json")
 
     @web.middleware
     async def log_requests(request: web.Request, handler):
+        """Log request/response metadata, including RPC payloads when present."""
         rpc_payload: dict[str, Any] | None = None
         if request.path.startswith("/rpc"):
             if request.method == "GET":
@@ -299,13 +193,12 @@ def create_app(settings: Settings) -> web.Application:
         }
         if rpc_payload is not None:
             payload["rpc"] = rpc_payload
-        logger = logging.getLogger("virtual_meter.requests")
         if settings.debug_logging:
             payload["headers"] = dict(request.headers)
             payload["response_headers"] = dict(response.headers)
-            logger.debug(json.dumps(payload, sort_keys=True))
+            request_logger.debug(json.dumps(payload, sort_keys=True))
         elif response.status >= 400:
-            logger.warning(json.dumps(payload, sort_keys=True))
+            request_logger.warning(json.dumps(payload, sort_keys=True))
         return response
 
     app.middlewares.append(log_requests)
