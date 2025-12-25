@@ -1,0 +1,39 @@
+---
+name: Virtual Meter
+version: "1.0.0"
+slug: virtual-meter
+description: "Shelly Pro 3EM emulator for Hoymiles battery systems"
+url: "https://github.com/boecht/ha-addon-virtual-meter"
+arch:
+  - amd64
+  - aarch64
+  - armv7
+  - armhf
+  - i386
+startup: application
+init: false
+host_network: true
+ingress: false
+homeassistant_api: false
+options:
+  http_port: 80
+  provider_endpoint: "http://tasmota/cm?cmnd=Status%2010"
+  poll_interval_ms: 1000
+  debug_logging: false
+schema:
+  http_port: port
+  device_mac: str?
+  provider_endpoint: str
+  provider_username: str?
+  provider_password: str?
+  poll_interval_ms: int(250,)
+  l1_act_power_json: str?
+  l1_act_power_value: float?
+  l1_power_offset: float?
+  l2_act_power_json: str?
+  l2_act_power_value: float?
+  l2_power_offset: float?
+  l3_act_power_json: str?
+  l3_act_power_value: float?
+  l3_power_offset: float?
+  debug_logging: bool

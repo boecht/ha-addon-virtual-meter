@@ -1,0 +1,46 @@
+---
+name: OpenSSF Scorecard
+
+"on":
+  schedule:
+    - cron: "16 8 * * 1"
+  pull_request:
+  push:
+    branches: ["main"]
+  workflow_dispatch:
+
+jobs:
+  analysis:
+    name: Scorecard analysis
+    if: github.event.repository.default_branch == github.ref_name
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      pull-requests: read
+      security-events: write # for github/codeql-action/upload-sarif to upload SARIF results
+      id-token: write # for step-security/harden-runner to fetch OIDC token
+
+    steps:
+      - name: Harden runner (audit outbound calls)
+        uses: step-security/harden-runner@95d9a5deda9de15063e7595e9719c11c38c90ae2 # v2.13.2
+        with:
+          egress-policy: audit
+
+      - name: Checkout repository
+        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+        with:
+          persist-credentials: false
+
+      - name: Run analysis
+        uses: ossf/scorecard-action@4eaacf0543bb3f2c246792bd56e8cdeffafb205a # v2.4.3
+        with:
+          results_file: results.sarif
+          results_format: sarif
+          publish_results: true
+
+      - name: Upload to code-scanning
+        uses: github/codeql-action/upload-sarif@e12f0178983d466f2f6028f5cc7a6d786fd97f4b # v4.31.4
+        with:
+          sarif_file: results.sarif
+          category: ossf-scorecard
