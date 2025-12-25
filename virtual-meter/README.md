@@ -1,18 +1,20 @@
-# ha-addon-virtual-meter
+# Virtual Meter
 
-Home Assistant add-on repository for a virtual Shelly Pro 3EM (Gen2) emulator.
+The add-on provides a Shelly Pro 3EM (Gen2) emulator so that Hoymiles 1920 AC
+battery owners can control battery charge and discharge based on grid
+consumption data.
 
-## Goals
+## What it does
 
-- Emulate Shelly Pro 3EM Gen2 RPC endpoints used by Hoymiles battery systems.
-- Pull grid data from a configurable HTTP provider endpoint.
-- Normalize/derive values into Shelly-compatible fields.
+- Polls a configurable HTTP endpoint (e.g., Tasmota Status 10).
+- Maps source readings to Shelly EM fields using JSON paths or fixed values.
+- Serves Shelly Gen2 JSON-RPC endpoints used by Hoymiles.
+- Advertises the device via mDNS for local discovery.
 
-## Structure
+## Configuration highlights
 
-- `repository.json` - Supervisor metadata
-- `virtual-meter/` - Add-on folder
-
-## Status
-
-Active development: provider polling and mapping are implemented with configurable inputs.
+- `provider_endpoint` and optional `provider_username`/`provider_password`
+- `poll_interval_ms` (minimum 250 ms)
+- `l1/l2/l3_act_power_json` for JSON path mapping
+- `l1/l2/l3_act_power_value` and `*_power_offset` for overrides/offsets
+- `debug_logging` for verbose RPC/request logs
