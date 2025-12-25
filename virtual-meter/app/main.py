@@ -102,7 +102,9 @@ def main() -> None:
         from asyncio import sleep
 
         await sleep(0)
-        app["consumer_task"] = app.loop.create_task(consumer.start(_handle_snapshot))
+        from asyncio import create_task
+
+        app["consumer_task"] = create_task(consumer.start(_handle_snapshot))
         logging.getLogger("virtual_meter.poller").info("Poller task started")
 
     async def _cleanup(app: web.Application) -> None:
