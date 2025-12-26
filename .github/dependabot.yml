@@ -21,3 +21,8 @@ updates:
       - dependency-type: "direct"
     ignore:
       - dependency-name: "pip"
+
+  - package-ecosystem: docker
+    directory: /virtual-meter
+    schedule:
+      interval: daily
