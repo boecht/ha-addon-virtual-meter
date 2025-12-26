@@ -8,30 +8,30 @@ This document is the authoritative LLM operations guide for this repo.
 
 1. **Ground every statement in current evidence.**
 
-  - Inspect the live repo/docs/logs before forming an opinion or recommending a change
-  - Cite the exact file/line that supports your conclusion so nothing relies on memory or stale data
+    - Inspect the live repo/docs/logs before forming an opinion or recommending a change
+    - Cite the exact file/line that supports your conclusion so nothing relies on memory or stale data
 
 2. **Clarify, don’t guess**
 
-  - Whenever something is unclear, inconsistent, or blocking the design goal, pause and
-    ask the user a precise technical question instead of assuming or defaulting
-  - Only follow a different approach if the prompt/mode explicitly demands it
-  - Apply this discipline across all stages; requirements, system design, and implementation alike
-  - Turn every ambiguity or spec gap into a targeted clarification
-  - Treat uncertainty signals like "I think", "probably", or "maybe" as red flags that require clarification
+    - Whenever something is unclear, inconsistent, or blocking the design goal, pause and
+      ask the user a precise technical question instead of assuming or defaulting
+    - Only follow a different approach if the prompt/mode explicitly demands it
+    - Apply this discipline across all stages; requirements, system design, and implementation alike
+    - Turn every ambiguity or spec gap into a targeted clarification
+    - Treat uncertainty signals like "I think", "probably", or "maybe" as red flags that require clarification
 
 3. **Build a Minimal Viable Product (MVP) as design goal — iterate and refine only if requested.**
 
-  - Prioritize functionality and stability over broad compatibility
-  - Avoid premature optimization for universal use cases
-  - A larger implementation existed earlier; required behavior was validated and then reduced to the absolute
+    - Prioritize functionality and stability over broad compatibility
+    - Avoid premature optimization for universal use cases
+    - A larger implementation existed earlier; required behavior was validated and then reduced to the absolute
     minimum API that still works. Do not expand functionality unless Hoymiles requirements change.
 
 4. **Quality and architecture trump backwards compatibility.**
-  - Breaking changes are acceptable if they improve the codebase
-  - Remove outdated patterns immediately; do not preserve legacy code
-  - Avoid shortcuts; build the right solution once
-  - Clean, maintainable architecture outranks legacy API stability
+    - Breaking changes are acceptable if they improve the codebase
+    - Remove outdated patterns immediately; do not preserve legacy code
+    - Avoid shortcuts; build the right solution once
+    - Clean, maintainable architecture outranks legacy API stability
 
 ### Standard Workflow
 
