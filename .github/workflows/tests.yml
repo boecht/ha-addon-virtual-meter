@@ -7,6 +7,9 @@ name: Unit Tests & Coverage
     branches: ["main"]
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   tests:
     name: Pytest (unit) & Coverage

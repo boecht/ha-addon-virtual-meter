@@ -10,6 +10,9 @@ name: CodeQL Advanced
     - cron: "16 8 * * 1"
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   analyze:
     name: Analyze (${{ matrix.language }})
