@@ -1,28 +1,68 @@
----
 version: 2
 updates:
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "weekly"
+      day: "monday"
+    labels:
+      - "dependencies"
+    groups:
+      github-actions:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
+
   - package-ecosystem: "pip"
     directory: "/"
     schedule:
       interval: "weekly"
+      day: "tuesday"
     allow:
       - dependency-type: "direct"
     ignore:
       - dependency-name: "pip"
+    labels:
+      - "dependencies"
+      - "python"
+    groups:
+      python-root:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
+
   - package-ecosystem: "pip"
     directory: "/virtual-meter"
     schedule:
       interval: "weekly"
+      day: "tuesday"
     allow:
       - dependency-type: "direct"
     ignore:
       - dependency-name: "pip"
+    labels:
+      - "dependencies"
+      - "python"
+    groups:
+      python-app:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
 
   - package-ecosystem: docker
     directory: /virtual-meter
     schedule:
       interval: daily
+    labels:
+      - "dependencies"
+      - "docker"
+    groups:
+      docker:
+        patterns:
+          - "*"
