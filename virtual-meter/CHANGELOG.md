@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.1.0
+
+- Added `GET /shelly` device info responses for discovery compatibility.
+- Fixed provider timeouts to log as warnings (including timeout duration).
+
 ## 1.0.0
 
 - First published release of the Virtual Meter add-on.
