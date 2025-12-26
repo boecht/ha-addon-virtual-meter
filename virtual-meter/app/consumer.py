@@ -8,6 +8,7 @@ from typing import Awaitable, Callable
 
 from aiohttp import ClientSession, ClientTimeout
 import logging
+import asyncio
 
 
 @dataclass
@@ -61,6 +62,10 @@ class HttpConsumer:
                         self.latest = snapshot
                         if on_update is not None:
                             await on_update(snapshot)
+                except asyncio.TimeoutError:
+                    logger.warning(
+                        "Failed to fetch provider endpoint (10s timeout)"
+                    )
                 except Exception:
                     logger.exception("Failed to fetch provider endpoint")
                     # Keep last known good data

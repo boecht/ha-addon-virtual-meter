@@ -157,6 +157,13 @@ def create_app(settings: Settings, device_id: str) -> web.Application:
             response_bytes = _jsonrpc_success_bytes(request_id, payload)
         return web.Response(body=response_bytes, content_type="application/json")
 
+    async def shelly_info(request: web.Request) -> web.StreamResponse:
+        """Return the raw Shelly.GetDeviceInfo payload."""
+        payload = await _dispatch_payload("Shelly.GetDeviceInfo")
+        if payload is None:
+            return web.Response(status=404, body=b"", content_type="application/json")
+        return web.Response(body=payload, content_type="application/json")
+
     @web.middleware
     async def log_requests(request: web.Request, handler):
         """Log request/response metadata, including RPC payloads when present."""
@@ -205,5 +212,6 @@ def create_app(settings: Settings, device_id: str) -> web.Application:
 
     app.router.add_get("/rpc", rpc_root)
     app.router.add_post("/rpc", rpc_root)
+    app.router.add_get("/shelly", shelly_info)
 
     return app

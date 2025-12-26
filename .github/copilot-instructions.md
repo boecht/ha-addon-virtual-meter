@@ -1,98 +1,162 @@
-# Virtual Meter – Always-Needed Implementation Context
+# CoPilot Instructions
 
-## Purpose (do not deviate)
+This document is the authoritative LLM operations guide for this repo.
 
-- Emulate a **Shelly Pro 3EM Gen2** on the local LAN so a **Hoymiles 192 AC**
-  battery can read grid data sourced from a **Tasmota (Hichi IR) device**.
-  (Source: "Product & Business Requirements")
-- Provide a **reliable, always-on** emulator exposing required Shelly RPC
-  endpoints and fields. (Source: "Product & Business Requirements")
+## Operating Requirements
 
-## Non‑negotiable runtime/packaging constraints
+### Project Principles
 
-- **Home Assistant add-on** runtime.
-- **Python 3.13+ on Alpine Linux**.
-- **host_network: true** and **bind port 80** directly; device must be reachable on LAN without ingress/port mapping.
-- **No HA API dependency**; use local-only operation (no cloud/external
-  dependencies). (Source: "Technical & Architectural Requirements")
+1. **Ground every statement in current evidence.**
 
-## Required RPC surface (minimum viable behavior)
+    - Inspect the live repo/docs/logs before forming an opinion or recommending a change
+    - Cite the exact file/line that supports your conclusion so nothing relies on memory or stale data
 
-- Must serve HTTP GET RPC endpoints:
-  - `GET /rpc/Shelly.GetStatus`
-  - `GET /rpc/EM.GetStatus?id=0`
-- Responses must be **valid Shelly Gen2 JSON-RPC style payloads** with correct
-  field names/units. (Source: "Functional Requirements"; "Shelly Pro 3EM Gen2
-  API Reference")
+2. **Clarify, don’t guess**
 
-## Required data fields (Hoymiles read targets)
+    - Whenever something is unclear, inconsistent, or blocking the design goal, pause and
+      ask the user a precise technical question instead of assuming or defaulting
+    - Only follow a different approach if the prompt/mode explicitly demands it
+    - Apply this discipline across all stages; requirements, system design, and implementation alike
+    - Turn every ambiguity or spec gap into a targeted clarification
+    - Treat uncertainty signals like "I think", "probably", or "maybe" as red flags that require clarification
 
-- `total_act_power`
-- `a_act_power`, `b_act_power`, `c_act_power`
-- `voltage`, `current`, `pf`
-(These must appear in the appropriate Shelly Gen2 structures/fields.) (Source:
-"Functional Requirements"; "Hoymiles 1920 AC Assumptions & Validation Plan")
+3. **Build a Minimal Viable Product (MVP) as design goal — iterate and refine only if requested.**
 
-## Data acquisition + mapping rules
+    - Prioritize functionality and stability over broad compatibility
+    - Avoid premature optimization for universal use cases
+    - A larger implementation existed earlier; required behavior was validated and then reduced to the absolute
+    minimum API that still works. Do not expand functionality unless Hoymiles requirements change.
 
-- Poll a **Tasmota** device at a configurable interval and map readings into Shelly EM fields.
-- Support single‑phase vs three‑phase mapping:
-  - **Single‑phase**: derive 3‑phase values from available data.
-  - **Three‑phase**: map each phase explicitly.
-- Allow optional per‑field data sources. If missing,
-  use defaults or derive values (e.g., current from power/voltage).
-  (Source: "Functional Requirements")
+4. **Quality and architecture trump backwards compatibility.**
+    - Breaking changes are acceptable if they improve the codebase
+    - Remove outdated patterns immediately; do not preserve legacy code
+    - Avoid shortcuts; build the right solution once
+    - Clean, maintainable architecture outranks legacy API stability
 
-## Rate limiting + caching
+### Standard Workflow
 
-- Rate-limit RPC responses to a configurable interval **not lower than the
-  Tasmota read interval**.
-- Serve **cached** readings when requests exceed the rate limit. (Source:
-  "Functional Requirements"; "Technical & Architectural Requirements")
+#### Development Approach
 
-## Discovery + identity
+- **Requirements Analysis**
+  - Break down tasks into clear requirements, success criteria, and constraints
+  - Evaluate feasibility with respect to API capabilities and project architecture
+  - When uncertain, ask using the structured format
+- **System Design**
+  - Identify required modules, interfaces, integrations, and resources before coding
+  - Map changes to source and target API specs
+- **Implementation Strategy**
+  - Choose TDD when tests exist or are requested
+  - Otherwise implement directly, component by component
+- **Quality Assurance**
+  - Check against modular design principles, API compliance, and framework guidelines
+  - Prefer targeted tests over full suite runs for speed
 
-- Advertise via **mDNS/zeroconf** (toggleable):
-  - Service: `_http._tcp.local.`
-  - TXT: `gen=2`, `app=Pro3EM`
-- Use Python `zeroconf` library. (Source: "Functional Requirements";
-  "Technical & Architectural Requirements")
+#### Development Best Practices
 
-## Configuration surface (must exist)
+- Think step-by-step about goals, architecture, and limitations
+- Prefer editing existing files over creating new ones
+- Verify assumptions with data; never guess
+- Run the smallest relevant tests for rapid feedback
+- Execute pertinent tests after every change to catch regressions early
 
-- `tasmota_ip`, `poll_interval`
-- `mock_mode`, `debug_logging`
-- Phase mode + optional field mappings (see mapping rules above). (Source:
-  "Technical & Architectural Requirements")
+#### Quality Assurance Checklist
 
-## Mock mode (always include when implementing behavior)
+Every task must end with a QA review that compares all work to the initial task:
 
-- Mock mode returns **static, valid JSON for the full API surface** (not only
-  implemented endpoints).
-- Mock mode logs every request for protocol analysis. (Source: "Functional
-  Requirements")
+1. **Restate original task**: What did the user ask for?
+2. **List file changes**: For each modified file, explain how the change serves the original task
+3. **Identify misalignment**: Call out any changes that don't directly serve the task objective
+4. **Reflect on alignment**: Does the complete set of changes accomplish what was requested?
+  Are there gaps or overreach?
+5. **Align documentation**: Do documentation and comments reflect any significant behaviour changes?
+6. **Verify changes**: Read back edited content to confirm correctness
 
-## Scope boundaries (do not implement unless explicitly requested)
+### Communication Protocol
 
-- No Shelly web UI or cloud features.
-- No Shelly scripting, MQTT automation, or cloud integrations.
-- No historical data storage beyond Hoymiles integration needs. (Source:
-  "Product & Business Requirements")
+#### Messaging Guidelines
 
-## External client behavior assumptions (keep in mind)
+- Be direct and technical; prioritize facts over tone
+- Assume core programming literacy; skip over-explaining basics
+- Flag bugs, performance issues, or maintainability risks immediately
+- State opinions as such; do not present subjective preferences as facts
 
-- Hoymiles likely calls `GET /rpc/Shelly.GetStatus` and
-  `GET /rpc/EM.GetStatus?id=0`.
-- Poll cadence unknown; **protocol capture logs** should be used to confirm.
-  (Source: "External Client Behavior"; "Hoymiles 1920 AC Assumptions &
-  Validation Plan")
+#### Structured Clarification Requests
 
-## References (Notion)
+When asking the user for clarification, follow this template:
 
-- Project hub: <https://www.notion.so/2d0344e4ba8b810c869aef8a98dcb1da>
-- Product & Business Requirements: <https://www.notion.so/2d0344e4ba8b81df97ecfe2e632940af>
-- Functional Requirements: <https://www.notion.so/2d0344e4ba8b813ea543c95637a0b22f>
-- Technical & Architectural Requirements: <https://www.notion.so/2d0344e4ba8b811f98dec2d7b791d591>
-- Shelly Pro 3EM Gen2 API Reference: <https://www.notion.so/2d1344e4ba8b818ebf12c255e8d34df2>
-- External Client Behavior: <https://www.notion.so/2d1344e4ba8b8199a240e26a398907da>
-- Hoymiles 1920 AC Assumptions & Validation Plan: <https://www.notion.so/2d0344e4ba8b8163a1a1dcbdb70f528c>
+```text
+**Question X**: {Clear, specific question}
+**Options**:
+- A) {Option with trade-offs}
+- B) {Option with trade-offs}
+- C) {Additional options as needed}
+**Context**: {Relevant best practices or constraints}
+**Recommendation**: {Your recommendation with reasoning}
+```
+
+### External Sources
+
+If Notion is accessible, consult it before web search.
+
+### Source of Truth
+
+This file is the canonical Copilot/LLM instruction set for the repository.
+Keep other guidance documents (e.g., root `AGENTS.md`) pointing here to avoid drift.
+
+## Implementation Overview
+
+### Orientation & Quick Links
+
+- Repo overview: `README.md`
+- Add‑on overview: `virtual-meter/README.md`
+- End‑user docs: `virtual-meter/DOCS.md`
+- App entrypoint: `virtual-meter/app/main.py`
+- RPC server: `virtual-meter/app/provider.py`
+- Polling + mapping: `virtual-meter/app/consumer.py`, `virtual-meter/app/assembler.py`
+- Tests / CI: `tests/`, `.github/workflows/`
+
+### System Flow (Non‑Obvious)
+
+- **Startup (one‑time, before serving):**
+
+  - Normalize MAC → compute `device_id`.
+  - Seed the cache with static payloads: `Shelly.GetDeviceInfo`, `EMData.GetStatus`, `EM.GetConfig`.
+  - Start aiohttp app and poller task; start mDNS broadcaster.
+
+- **Polling loop (repeats forever):**
+
+  - HTTP GET to `provider_endpoint` (optional `user`/`password` query params).
+  - Decode JSON → map values → assemble dynamic payloads.
+  - Overwrite cache entries for `Shelly.GetStatus` and `EM.GetStatus`.
+  - On fetch/parse errors: log and keep last good cache.
+
+- **Serving phase (always):**
+  - `/rpc` serves cached payloads only; there is no live computation on request.
+  - HTTP and WebSocket paths both resolve from the same cache.
+
+### RPC Surface (Methods Only)
+
+Required methods:
+
+- `Shelly.GetDeviceInfo`
+- `Shelly.GetStatus`
+- `EM.GetStatus`
+- `EM.GetConfig`
+- `EMData.GetStatus`
+
+Transport:
+
+- HTTP GET `/rpc?method=<MethodName>`
+- HTTP POST `/rpc` with JSON body containing `method`
+- WebSocket `/rpc` with JSON body containing `method`
+- Unknown methods return JSON‑RPC error `-32601`
+
+(Fields are defined in code; do not duplicate here.)
+
+### Config → Behavior Map
+
+- `provider_endpoint`, `provider_username`, `provider_password` → polling source and auth params
+- `poll_interval_ms` → poll cadence and cache refresh rate
+- `device_mac` → device identity and mDNS name
+- `l1/l2/l3_*` mappings + offsets → power mapping behavior
+- `debug_logging` → request/response logging
