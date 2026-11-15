@@ -85,6 +85,13 @@ def create_app(settings: Settings, device_id: str) -> web.Application:
                         )
                     )
                     continue
+                if not isinstance(body, dict):
+                    await ws.send_bytes(
+                        _jsonrpc_error_bytes(
+                            None, {"code": -32600, "message": "Invalid Request"}
+                        )
+                    )
+                    continue
                 method = body.get("method")
                 request_id = body.get("id")
                 if not method:
@@ -137,7 +144,24 @@ def create_app(settings: Settings, device_id: str) -> web.Application:
                 response_bytes = _jsonrpc_success_bytes(None, payload)
             return web.Response(body=response_bytes, content_type="application/json")
 
-        body = await request.json()
+        try:
+            body = await request.json()
+        except ValueError:
+            return web.Response(
+                status=400,
+                body=_jsonrpc_error_bytes(
+                    None, {"code": -32700, "message": "Parse error"}
+                ),
+                content_type="application/json",
+            )
+        if not isinstance(body, dict):
+            return web.Response(
+                status=400,
+                body=_jsonrpc_error_bytes(
+                    None, {"code": -32600, "message": "Invalid Request"}
+                ),
+                content_type="application/json",
+            )
         method = body.get("method")
         request_id = body.get("id")
         if not method:
@@ -180,7 +204,7 @@ def create_app(settings: Settings, device_id: str) -> web.Application:
                 try:
                     body = await request.json()
                 except Exception:
-                    body = await request.text()
+                    body = (await request.read()).decode("utf-8", "replace")
                 rpc_payload = {
                     "transport": "body",
                     "body": body,
